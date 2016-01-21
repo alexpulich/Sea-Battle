@@ -1,0 +1,9 @@
+# TEAM
+Alexey Pulich -- frontend -- vk.com/alexpulich
+Anton Solovyov -- java backend -- vk.com/irvaz
+Alexander Pashnin -- users, db -- vk.com/id39653524
+Georgy Khodikov -- bot -- vk.com/alexpulich -- vk.com/georgy_khodikov 
+
+# TECHNOLOGY COLOPHON
+CSS3, HTML5, Bootstrap
+Modernizr, Normalize.css, jQuery

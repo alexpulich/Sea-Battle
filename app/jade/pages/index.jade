@@ -1,4 +1,61 @@
 extends ../layouts/main-layout.jade
 block title
-    title Main page
+    title Морской бой | Главная страница
 
+block content
+    .wrapper
+        .wrapper-inner
+            .masthead
+                .inner
+                    h3.masthead-brand Морской бой
+                    nav
+                        ul.nav.masthead-nav
+                            li.active
+                                a(href="#") Главная
+                            li
+                                a(href="#") Обратная связь
+            div#fullpage
+                div.section.main-page
+                            .cover-container
+                                .inner.cover
+                                    h1.cover-heading Морской бой
+                                    p.lead
+                                        | Онлайн версия знаменитой настольной игры, в которую играл, пожалуй, каждый.
+                                        | Расставь корабли на поле боя! Огонь! Победит сильнейший!
+                                    p.lead
+                                        a.btn.btn-lg.btn-default.start-game-btn(href="#") Начать игру
+
+                div.section.about-page
+                                .inner
+                                    div.person
+                                        div.person-photo-block
+                                            img.person-photo(src="img/persons/alexpulich.jpg", alt="Alexey Pulich", title="Alexey Pulich")
+                                        div.person-info
+                                            div.person-title
+                                                | Пулич Алексей
+                                            div.person-description
+                                                | Frontend
+                                    div.person
+                                        div.person-photo-block
+                                            img.person-photo(src="img/persons/anton.jpg", alt="Alexey Pulich", title="Alexey Pulich")
+                                        div.person-info
+                                            div.person-title
+                                                | Соловьёв Антон
+                                            div.person-description
+                                                | Client-Server
+                                    div.person
+                                        div.person-photo-block
+                                            img.person-photo(src="img/persons/pashnin.jpg", alt="Alexey Pulich", title="Alexey Pulich")
+                                        div.person-info
+                                            div.person-title
+                                                | Пашнин Александр
+                                            div.person-description
+                                                | DB, Users
+                                    div.person
+                                        div.person-photo-block
+                                            img.person-photo(src="img/persons/hodikov.jpg", alt="Alexey Pulich", title="Alexey Pulich")
+                                        div.person-info
+                                            div.person-title
+                                                | Ходиков Георгий
+                                            div.person-description
+                                                | Разработка ИИ
