@@ -126,14 +126,17 @@ body {
   }
   /* Handle the widths */
   .masthead,
-  .cover-container {
+  .cover-container,
+  .about-page-container {
     width: 100%; /* Must be percentage or pixels for horizontal alignment */
   }
+
 }
 
 @media (min-width: 992px) {
   .masthead,
-  .cover-container {
+  .cover-container,
+  .about-page-container {
     width: 700px;
   }
 }
@@ -167,13 +170,18 @@ body {
 }
 
 .about-page {
+  background: url("../img/bg-team.jpg") center center no-repeat;
 }
 
 .person {
   width: 20%;
+  height: 300px;
   min-width: 150px;
   padding: 10px;
-  background: grey;
+  background: rgba(0, 0, 0, 0.5);
+  border-radius: 10px;
+  -moz-border-radius: 10px;
+  -webkit-border-right: 10тpx;
   overflow: hidden;
   float: left;
   margin-left: 40px;
@@ -191,11 +199,11 @@ body {
   -webkit-border-radius: 50%;
   -moz-border-radius: 50%;
   border-radius: 50%;
+  border: 3px solid black;
 }
 
 .person-photo {
-  width: auto;
-  height: 100%;
+  width: 100%;
 }
 
 .person-info {
