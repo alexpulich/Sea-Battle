@@ -3,21 +3,15 @@ block title
     title Морской бой | Главная страница
 
 block content
-    .container
-        header.header
-            .header-wrapper
-                .header-title Морской бой
-                nav.nav
-                    ul.nav-list#nav
-                        -var navArr = {"Главная":"main", "Команда":"about"}
-                        each val, key in navArr
-                            li.nav-item(data-menuanchor=val)
-                                -var link = "#" + val;
-                                a.nav-link(href=link)=key
+        include ../common/header.jade
         div#fullpage
-            div.section.main-page(data-anchor="main")
-                .section-container
-                    .inner
+            mixin page(section, anchor)
+                -var classes = ['section', section]
+                div(class=classes, data-anchor=anchor)
+                    .section-container
+                        .inner
+                            block
+            +page("main-page", "main")
                         .intro
                             .intro-title Морской бой
                             div.intro-content
@@ -25,38 +19,16 @@ block content
                                 | Расставь корабли на поле боя! Огонь! Победит сильнейший!
                             a.start-game-btn(href="#") Начать игру
 
-            div.section.about-page(data-anchor="about")
-                .about-page-container
-                    .inner
-                        div.person
-                            div.person-photo-block
-                                img.person-photo(src="img/persons/alexpulich.jpg", alt="Alexey Pulich", title="Alexey Pulich")
-                            div.person-info
-                                div.person-title
-                                    | Пулич Алексей
-                                div.person-description
-                                    | Frontend
-                        div.person
-                            div.person-photo-block
-                                img.person-photo(src="img/persons/anton.jpg", alt="Alexey Pulich", title="Alexey Pulich")
-                            div.person-info
-                                div.person-title
-                                    | Соловьёв Антон
-                                div.person-description
-                                    | Client-Server
-                        div.person
-                            div.person-photo-block
-                                img.person-photo(src="img/persons/pashnin.jpg", alt="Alexey Pulich", title="Alexey Pulich")
-                            div.person-info
-                                div.person-title
-                                    | Пашнин Александр
-                                div.person-description
-                                    | DB, Users
-                        div.person
-                            div.person-photo-block
-                                img.person-photo(src="img/persons/hodikov.jpg", alt="Alexey Pulich", title="Alexey Pulich")
-                            div.person-info
-                                div.person-title
-                                    | Ходиков Георгий
-                                div.person-description
-                                    | Разработка ИИ
+            +page("about-page", "about")
+                        .team
+                            mixin person(name, photo, position)
+                                div.person
+                                    div.person-photo-block
+                                        img.person-photo(src=photo, alt=name, title=name)
+                                    div.person-info
+                                        div.person-title=name
+                                        div.person-description=position
+                            +person("Пулич Алексей", "img/persons/alexpulich.jpg", "Frontend")
+                            +person("Соловьёв Антон", "img/persons/anton.jpg", "Client-Server")
+                            +person("Пашнин Александр", "img/persons/pashnin.jpg", "DB, Users")
+                            +person("Ходиков Георгий", "img/persons/hodikov.jpg", "Разработка ИИ")
