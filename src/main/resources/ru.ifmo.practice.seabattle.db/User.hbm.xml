@@ -1,0 +1,30 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+    <class name="ru.ifmo.practice.seabattle.db.User" table="User" catalog="SEABATTLE">
+        <id name="id" type="java.lang.Integer">
+            <column name="id" />
+            <generator class="identity" />
+        </id>
+        <property name="email" type="java.lang.String">
+            <column name="email" length="20" not-null="true" unique="true" />
+        </property>
+        <property name="niсkname" type="java.lang.String">
+            <column name="nickname" length="20" not-null="true" unique="true" />
+        </property>
+        <property name="gamesCount" type="java.lang.Integer">
+            <column name="games_count" not-null="true" default="0"/>
+        </property>
+        <property name="password" type="java.lang.String">
+            <column name="password" length="20" not-null="true"/>
+        </property>
+        <property name="winsCount" type="java.lang.Integer">
+            <column name="wins_column" not-null="true" default="0"/>
+        </property>
+        <property name="raiting" type="java.lang.Integer">
+            <column name="raiting" not-null="true" default="0"/>
+        </property>
+    </class>
+</hibernate-mapping>
