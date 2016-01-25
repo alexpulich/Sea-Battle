@@ -5,5 +5,5 @@ import ru.ifmo.practice.seabattle.db.Match;
 public interface MatchDAO {
     public void addMatch(Match match);
 
-    public void deleteUser(Match match);
+    public void deleteMatch(Match match);
 }
