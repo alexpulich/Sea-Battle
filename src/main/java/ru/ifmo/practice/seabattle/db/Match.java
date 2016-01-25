@@ -1,25 +1,61 @@
 package ru.ifmo.practice.seabattle.db;
 
+import org.hibernate.annotations.GenericGenerator;
+import javax.persistence.*;
+
+@Entity
+@Table(name="Game")
 public class Match {
-    private User user1;
-    private User user2;
-    private MatchWinner winner;
 
-    public User getUser1() {
-        return user1;
+    private int id;
+    private int winnerId;
+    private int loserId;
+    private int winnerEfficiency;
+    private int loserEfficiency;
+
+    @Id
+    @GeneratedValue(generator="increment")
+    @GenericGenerator(name="increment", strategy = "increment")
+    public int getId() {
+        return id;
     }
 
-    public User getUser2() {
-        return user2;
+    public int getWinnerId() {
+        return winnerId;
     }
 
-    public MatchWinner getWinner() {
-        return winner;
+    public int getLoserId() {
+        return loserId;
     }
 
-    public Match(User user1, User user2, MatchWinner winner) {
-        this.user1 = user1;
-        this.user2 = user2;
-        this.winner = winner;
+    public int getWinnerEfficiency() {
+        return winnerEfficiency;
+    }
+
+    public int getLoserEfficiency() {
+        return loserEfficiency;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    public void setWinnerId(int winnerId) {
+        this.winnerId = winnerId;
+    }
+
+    public void setLoserId(int loserId) {
+        this.loserId = loserId;
+    }
+
+    public void setWinnerEfficiency(int winnerEfficiency) {
+        this.winnerEfficiency = winnerEfficiency;
+    }
+
+    public void setLoserEfficiency(int loserEfficiency) {
+        this.loserEfficiency = loserEfficiency;
+    }
+
+    public Match() {
     }
 }

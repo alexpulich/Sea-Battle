@@ -1,5 +1,10 @@
 package ru.ifmo.practice.seabattle.db;
 
+import org.hibernate.annotations.GenericGenerator;
+import javax.persistence.*;
+
+@Entity
+@Table(name="User")
 public class User {
     private int id;
     private int raiting;
@@ -9,9 +14,11 @@ public class User {
     private int gamesCount;
     private int winsCount;
 
-
-    public double getRating() {
-        return raiting;
+    @Id
+    @GeneratedValue(generator="increment")
+    @GenericGenerator(name="increment", strategy = "increment")
+    public int getId() {
+        return id;
     }
 
     public String getEmail() {
@@ -24,10 +31,6 @@ public class User {
 
     public String getPassword() {
         return password;
-    }
-
-    public int getId() {
-        return id;
     }
 
     public int getRaiting() {
