@@ -1,10 +1,11 @@
 package ru.ifmo.practice.seabattle.db;
 
 import org.hibernate.annotations.GenericGenerator;
+
 import javax.persistence.*;
 
 @Entity
-@Table(name="Game")
+@Table(name = "Game")
 public class Match {
 
     private int id;
@@ -14,8 +15,8 @@ public class Match {
     private int loserEfficiency;
 
     @Id
-    @GeneratedValue(generator="increment")
-    @GenericGenerator(name="increment", strategy = "increment")
+    @GeneratedValue(generator = "increment")
+    @GenericGenerator(name = "increment", strategy = "increment")
     public int getId() {
         return id;
     }
