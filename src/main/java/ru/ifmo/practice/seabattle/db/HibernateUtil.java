@@ -9,7 +9,7 @@ public class HibernateUtil {
     private static SessionFactory sessionFactory;
 
     //Вызывать только 1 раз!
-    //Поднимает фабрику, которая создает сесси для доступа к БД
+    //Поднимает фабрику, которая создает сессии для доступа к БД
     protected void setUp() throws Exception {
         final StandardServiceRegistry registry = new StandardServiceRegistryBuilder()
                 .configure() // configures settings from hibernate.cfg.xml
@@ -17,6 +17,7 @@ public class HibernateUtil {
         try {
             sessionFactory = new MetadataSources(registry).buildMetadata().buildSessionFactory();
         } catch (Exception e) {
+            System.out.println("Упал сетап");
             System.out.println(e.toString());
             StandardServiceRegistryBuilder.destroy(registry);
         }

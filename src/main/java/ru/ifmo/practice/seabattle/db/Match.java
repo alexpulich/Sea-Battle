@@ -9,10 +9,11 @@ import javax.persistence.*;
 public class Match {
 
     private int id;
-    private int winnerId;
-    private int loserId;
-    private int winnerEfficiency;
-    private int loserEfficiency;
+    private int loser_id;
+    private int winner_id;
+    private int winner_eff;
+    private int loser_eff;
+
 
     @Id
     @GeneratedValue(generator = "increment")
@@ -21,40 +22,41 @@ public class Match {
         return id;
     }
 
-    public int getWinnerId() {
-        return winnerId;
+
+    public int getLoser_id() {
+        return loser_id;
     }
 
-    public int getLoserId() {
-        return loserId;
+    public int getWinner_id() {
+        return winner_id;
     }
 
-    public int getWinnerEfficiency() {
-        return winnerEfficiency;
+    public int getWinner_eff() {
+        return winner_eff;
     }
 
-    public int getLoserEfficiency() {
-        return loserEfficiency;
+    public int getLoser_eff() {
+        return loser_eff;
+    }
+
+    public void setLoser_eff(int loser_eff) {
+        this.loser_eff = loser_eff;
+    }
+
+    public void setWinner_id(int winner_id) {
+        this.winner_id = winner_id;
     }
 
     public void setId(int id) {
         this.id = id;
     }
 
-    public void setWinnerId(int winnerId) {
-        this.winnerId = winnerId;
+    public void setLoser_id(int loser_id) {
+        this.loser_id = loser_id;
     }
 
-    public void setLoserId(int loserId) {
-        this.loserId = loserId;
-    }
-
-    public void setWinnerEfficiency(int winnerEfficiency) {
-        this.winnerEfficiency = winnerEfficiency;
-    }
-
-    public void setLoserEfficiency(int loserEfficiency) {
-        this.loserEfficiency = loserEfficiency;
+    public void setWinner_eff(int winner_eff) {
+        this.winner_eff = winner_eff;
     }
 
     public Match() {
