@@ -1,6 +1,6 @@
 CREATE TABLE User (
 	`id` INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
-	`nickname` varchar(20) NOT NULL UNIQUE,
+	`user_nickname` varchar(20) NOT NULL UNIQUE,
 	`email` varchar(20) NOT NULL UNIQUE,
 	`games_count` INT NOT NULL DEFAULT '0',
 	`wins_count` INT NOT NULL DEFAULT '0',

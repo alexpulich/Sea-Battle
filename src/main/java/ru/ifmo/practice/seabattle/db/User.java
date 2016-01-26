@@ -8,12 +8,12 @@ import javax.persistence.*;
 @Table(name = "User")
 public class User {
     private int id;
+    private String user_nickname;//max length=20
+    private String email;        //max length=20
+    private String password;     //max length=20
+    private int games_count;
+    private int wins_count;
     private int raiting;
-    private String niсkname;//max length 20
-    private String password;//max length 20
-    private String email;   //max length 20
-    private int gamesCount;
-    private int winsCount;
 
     @Id
     @GeneratedValue(generator = "increment")
@@ -22,72 +22,72 @@ public class User {
         return id;
     }
 
-    public String getEmail() {
-        return email;
+    public String getUser_nickname() {
+        return user_nickname;
     }
 
-    public String getNiсkname() {
-        return niсkname;
+    public String getEmail() {
+        return email;
     }
 
     public String getPassword() {
         return password;
     }
 
+    public int getGames_count() {
+        return games_count;
+    }
+
+    public int getWins_count() {
+        return wins_count;
+    }
+
     public int getRaiting() {
         return raiting;
-    }
-
-    public int getGamesCount() {
-        return gamesCount;
-    }
-
-    public int getWinsCount() {
-        return winsCount;
     }
 
     public void setId(int id) {
         this.id = id;
     }
 
-    public void setRaiting(int raiting) {
-        this.raiting = raiting;
-    }
-
-    public void setNiсkname(String niсkname) {
-        this.niсkname = niсkname;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
+    public void setUser_nickname(String user_nickname) {
+        this.user_nickname = user_nickname;
     }
 
     public void setEmail(String email) {
         this.email = email;
     }
 
-    public void setGamesCount(int gamesCount) {
-        this.gamesCount = gamesCount;
+    public void setPassword(String password) {
+        this.password = password;
     }
 
-    public void setWinsCount(int winsCount) {
-        this.winsCount = winsCount;
+    public void setGames_count(int games_count) {
+        this.games_count = games_count;
+    }
+
+    public void setWins_count(int wins_count) {
+        this.wins_count = wins_count;
+    }
+
+    public void setRaiting(int raiting) {
+        this.raiting = raiting;
     }
 
     public User() {
     }
 
-    public User(int raiting, String niсkname, String password) {
-        this.raiting = raiting;
-        this.niсkname = niсkname;
-        this.password = password;
-    }
-
-    public User(String niсkname, String password) {
-        this.raiting = 0;
-        this.niсkname = niсkname;
-        this.password = password;
-        this.gamesCount = 0;
-        this.winsCount = 0;
-    }
+//    public User(int raiting, String niсkname, String password) {
+//        this.raiting = raiting;
+//        this.niсkname = niсkname;
+//        this.password = password;
+//    }
+//
+//    public User(String niсkname, String password) {
+//        this.raiting = 0;
+//        this.niсkname = niсkname;
+//        this.password = password;
+//        this.gamesCount = 0;
+//        this.winsCount = 0;
+//    }
 }
