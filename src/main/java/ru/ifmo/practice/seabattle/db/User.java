@@ -77,17 +77,4 @@ public class User {
     public User() {
     }
 
-//    public User(int raiting, String niсkname, String password) {
-//        this.raiting = raiting;
-//        this.niсkname = niсkname;
-//        this.password = password;
-//    }
-//
-//    public User(String niсkname, String password) {
-//        this.raiting = 0;
-//        this.niсkname = niсkname;
-//        this.password = password;
-//        this.gamesCount = 0;
-//        this.winsCount = 0;
-//    }
 }

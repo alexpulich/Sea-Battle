@@ -6,4 +6,6 @@ public interface MatchDAO {
     public void addMatch(Match match);
 
     public void deleteMatch(Match match);
+
+    public Match getMatchById(int id);
 }

@@ -4,6 +4,7 @@ import org.hibernate.Session;
 import ru.ifmo.practice.seabattle.db.DAO.MatchDAO;
 import ru.ifmo.practice.seabattle.db.HibernateUtil;
 import ru.ifmo.practice.seabattle.db.Match;
+import ru.ifmo.practice.seabattle.db.User;
 
 public class MatchDAOImpl implements MatchDAO {
     @Override
@@ -40,5 +41,24 @@ public class MatchDAOImpl implements MatchDAO {
                 session.close();
             }
         }
+    }
+
+    @Override
+    public Match getMatchById(int id) {
+        Session session = null;
+        Match match = null;
+        try {
+            session = HibernateUtil.getSessionFactory().openSession();
+            session.beginTransaction();
+            match = (Match) session.load(Match.class, id);
+        } catch (Exception e) {
+            //Обработку исключений пока не придумал
+            System.out.println(e.toString());
+        } finally {
+            if (session != null && session.isOpen()) {
+                session.close();
+            }
+        }
+        return match;
     }
 }
