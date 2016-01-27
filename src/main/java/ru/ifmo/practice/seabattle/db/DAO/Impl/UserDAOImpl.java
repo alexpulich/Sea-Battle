@@ -1,5 +1,6 @@
 package ru.ifmo.practice.seabattle.db.DAO.Impl;
 
+import org.hibernate.Query;
 import org.hibernate.Session;
 import ru.ifmo.practice.seabattle.db.DAO.UserDAO;
 import ru.ifmo.practice.seabattle.db.HibernateUtil;
@@ -77,6 +78,52 @@ public class UserDAOImpl implements UserDAO {
             if (session != null && session.isOpen()) {
                 session.close();
             }
+        }
+    }
+
+    @Override
+    public boolean isNicknameUnique(String nickname) {
+        Session session = null;
+        boolean flag=false;
+        try {
+            session = HibernateUtil.getSessionFactory().openSession();
+            session.beginTransaction();
+            Query query = session.
+                    createQuery("select 1 from User t where t.user_nickname = :key");
+            query.setString("key", nickname);
+            flag=(query.uniqueResult() == null);
+            session.getTransaction().commit();
+        } catch (Exception e) {
+            //Обработку исключений пока не придумал
+            System.out.println(e.toString());
+        } finally {
+            if (session != null && session.isOpen()) {
+                session.close();
+            }
+            return (flag);
+        }
+    }
+
+    @Override
+    public boolean isEmailUnique(String email) {
+        Session session = null;
+        boolean flag=false;
+        try {
+            session = HibernateUtil.getSessionFactory().openSession();
+            session.beginTransaction();
+            Query query = session.
+                    createQuery("select 1 from User t where t.email = :key");
+            query.setString("key", email);
+            flag=(query.uniqueResult() == null);
+            session.getTransaction().commit();
+        } catch (Exception e) {
+            //Обработку исключений пока не придумал
+            System.out.println(e.toString());
+        } finally {
+            if (session != null && session.isOpen()) {
+                session.close();
+            }
+            return (flag);
         }
     }
 }

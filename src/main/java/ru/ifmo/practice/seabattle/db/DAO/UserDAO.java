@@ -10,4 +10,8 @@ public interface UserDAO {
     public void updateUser(int id, User user);
 
     public void deleteUser(User user);
+
+    public boolean isNicknameUnique(String nickname);
+
+    public boolean isEmailUnique(String email);
 }
