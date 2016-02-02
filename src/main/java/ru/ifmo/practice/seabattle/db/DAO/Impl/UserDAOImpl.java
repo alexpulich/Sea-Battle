@@ -4,7 +4,11 @@ import org.hibernate.Query;
 import org.hibernate.Session;
 import ru.ifmo.practice.seabattle.db.DAO.UserDAO;
 import ru.ifmo.practice.seabattle.db.HibernateUtil;
+import ru.ifmo.practice.seabattle.db.Match;
 import ru.ifmo.practice.seabattle.db.User;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class UserDAOImpl implements UserDAO {
     @Override
@@ -125,5 +129,42 @@ public class UserDAOImpl implements UserDAO {
             }
             return (flag);
         }
+    }
+    @Override
+    public List<Match> getWins(int user_id){
+        Session session = null;
+        List<Match> wins = new ArrayList<Match>();
+        try {
+            session = HibernateUtil.getSessionFactory().openSession();
+            Query query = session.createQuery("from Match where winner_id=:winnerId")
+                    .setLong("winnerId", user_id);
+            wins = (List<Match>) query.list();
+        } catch (Exception e) {
+           System.out.println(e);
+        } finally {
+            if (session != null && session.isOpen()) {
+                session.close();
+            }
+        }
+        return wins;
+    }
+
+    @Override
+    public List<Match> getLoses(int user_id) {
+        Session session = null;
+        List<Match> loses = new ArrayList<Match>();
+        try {
+            session = HibernateUtil.getSessionFactory().openSession();
+            Query query = session.createQuery("from Match where loser_id=:loserId")
+                    .setLong("loserId", user_id);
+            loses = (List<Match>) query.list();
+        } catch (Exception e) {
+            System.out.println(e);
+        } finally {
+            if (session != null && session.isOpen()) {
+                session.close();
+            }
+        }
+        return loses;
     }
 }

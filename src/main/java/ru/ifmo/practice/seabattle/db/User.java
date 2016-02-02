@@ -3,6 +3,7 @@ package ru.ifmo.practice.seabattle.db;
 import org.hibernate.annotations.GenericGenerator;
 
 import javax.persistence.*;
+import java.util.List;
 
 @Entity
 @Table(name = "User")
@@ -14,6 +15,8 @@ public class User {
     private int games_count;
     private int wins_count;
     private int raiting;
+    private List<Match> wins;
+    private List<Match> loses;
 
     @Id
     @GeneratedValue(generator = "increment")
@@ -46,6 +49,15 @@ public class User {
         return raiting;
     }
 
+    @OneToMany
+    public List<Match> getLoses() {
+        return loses;
+    }
+    @OneToMany
+    public List<Match> getWins() {
+        return wins;
+    }
+
     public void setId(int id) {
         this.id = id;
     }
@@ -72,6 +84,14 @@ public class User {
 
     public void setRaiting(int raiting) {
         this.raiting = raiting;
+    }
+
+    public void setLoses(List<Match> loses) {
+        this.loses = loses;
+    }
+
+    public void setWins(List<Match> wins) {
+        this.wins = wins;
     }
 
     public User() {
