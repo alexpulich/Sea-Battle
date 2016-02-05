@@ -16,4 +16,22 @@ public class Coordinates {
         this.x = x;
         this.y = y;
     }
+
+    @Override
+    public String toString() {
+        return "{" + x + "," + y + "}";
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        return this.toString().equals(obj.toString());
+    }
+
+    @Override
+    public int hashCode() {
+        int result = 37 * 17 + x;
+        result = 37 * result + y;
+
+        return result;
+    }
 }
