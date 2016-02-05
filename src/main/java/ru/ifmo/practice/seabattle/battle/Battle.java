@@ -24,12 +24,14 @@ public class Battle {
     public void startBattle() {
         Gamer currentAttacker = firstGamer;
         Gamer currentDefender = secondGamer;
+        CellStatus lastRoundResult = CellStatus.Miss;
 
         while (winner == null && looser == null) {
-            Coordinates coordinatesOfSootsCell = currentAttacker.nextRound();
+            Coordinates coordinatesOfSootsCell = currentAttacker.nextRound(lastRoundResult);
             Cell shotCell = currentDefender.getCurrentField().getCell(coordinatesOfSootsCell);
 
             if (!shotCell.shotInCell()) continue;
+            lastRoundResult = shotCell.getCellStatus();
 
             if (currentDefender.getCurrentField().getNumberOfCellsWithShip() == 0) {
                 winner = currentAttacker;
