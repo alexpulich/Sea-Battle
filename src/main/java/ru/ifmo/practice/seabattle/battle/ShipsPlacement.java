@@ -3,7 +3,7 @@ package ru.ifmo.practice.seabattle.battle;
 import java.util.HashSet;
 import java.util.Random;
 
-public class ShipPlacement {
+public class ShipsPlacement {
     private HashSet<Coordinates> blackList = new HashSet<>();
 
     public Field getRandomPlacement() {
@@ -15,6 +15,8 @@ public class ShipPlacement {
 
             for (int j = 0; j < i; j++) {
                 Coordinates[] shipCoordinates = getRandomCoordinatesOfShip(n);
+                addShipToBlackList(shipCoordinates);
+
                 for(Coordinates coordinates : shipCoordinates) {
                     cells[coordinates.getX()][coordinates.getY()] = Cell.getShipCell();
                 }
@@ -22,6 +24,20 @@ public class ShipPlacement {
         }
 
         return new Field(cells);
+    }
+
+    private void addShipToBlackList(Coordinates[] shipCoordinates) {
+        for(Coordinates coordinates : shipCoordinates) {
+            int x = coordinates.getX() - 1;
+            int y = coordinates.getY() - 1;
+
+            for (int i = x; i < x + 3; i++) {
+                for (int j = y; j < y + 3; j++) {
+                    Coordinates coord = new Coordinates(i, j);
+                    if (!blackList.contains(coord)) blackList.add(coord);
+                }
+            }
+        }
     }
 
     private Coordinates[] getRandomCoordinatesOfShip(int cellNumber) {
@@ -53,7 +69,6 @@ public class ShipPlacement {
             }
         } while (!isPlaced);
 
-        for (Coordinates coordinates : shipCoordinates) blackList.add(coordinates);
         return shipCoordinates;
     }
 
