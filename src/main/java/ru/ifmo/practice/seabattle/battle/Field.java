@@ -90,7 +90,7 @@ public class Field {
         numberOfShipsForDecks[shipCoordinates.size()]++;
     }
 
-    // в случае промаха возвращает пустую коллекцию
+    // в случае промаха возвращает null
     public HashSet<Coordinates> shot(Coordinates shot) throws IllegalNumberOfShipException {
         if (ships.size() != 10) throw new IllegalNumberOfShipException();
         if (shots.contains(shot)) throw new IllegalArgumentException("В эту клетку уже стреляли");
@@ -103,6 +103,10 @@ public class Field {
                 result.addAll(ship.shot(shot));
         });
 
-        return result;
+        if (result.isEmpty()) return null;
+        else {
+            numberOfNotDestroyedDecks++;
+            return result;
+        }
     }
 }

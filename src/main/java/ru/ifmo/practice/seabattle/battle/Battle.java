@@ -1,6 +1,9 @@
 package ru.ifmo.practice.seabattle.battle;
 
 import ru.ifmo.practice.seabattle.exceptions.BattleNotFinishedException;
+import ru.ifmo.practice.seabattle.exceptions.IllegalNumberOfShipException;
+
+import java.util.HashSet;
 
 public class Battle {
     private Gamer firstGamer;
@@ -25,7 +28,23 @@ public class Battle {
         looser = null;
     }
 
-    public void start() {
-        
+    public void start() throws IllegalNumberOfShipException {
+        Gamer attacker = firstGamer;
+        Gamer defender = secondGamer;
+        HashSet<Coordinates> shotResult = null;
+
+        do {
+            Coordinates shot = attacker.nextRound(shotResult);
+            shotResult = defender.getField().shot(shot);
+
+            if (defender.getField().getNumberOfNotDestroyedDecks() == 20) {
+                winner = attacker;
+                looser = defender;
+            } else {
+                Gamer foo = attacker;
+                attacker = defender;
+                defender = foo;
+            }
+        } while (winner == null);
     }
 }
