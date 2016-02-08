@@ -16,4 +16,16 @@ public class Coordinates {
         this.x = x;
         this.y = y;
     }
+
+    @Override
+    public int hashCode() {
+        int result = 17 * 37 + x;
+        result += 17 * result + y;
+        return result;
+    }
+
+    @Override
+    public String toString() {
+        return "{" + x + "," + y + "}";
+    }
 }
