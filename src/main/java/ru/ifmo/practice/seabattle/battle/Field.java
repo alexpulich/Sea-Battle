@@ -67,10 +67,6 @@ public class Field {
         return numberOfNotDestroyedDecks;
     }
 
-    public void placeShipsRandom() {
-        // ...
-    }
-
     public void addShip(HashSet<Coordinates> shipCoordinates) throws IllegalNumberOfShipException {
         if (ships.size() == 10) throw new IllegalNumberOfShipException("Поле уже заполнено");
 
@@ -98,10 +94,12 @@ public class Field {
         shots.add(shot);
         HashSet<Coordinates> result = new HashSet<>();
 
-        ships.forEach((ship) -> {
-            if (ship.getDecks().contains(shot))
+        for (Ship ship : ships) {
+            if (ship.getDecks().contains(shot)) {
                 result.addAll(ship.shot(shot));
-        });
+                break;
+            }
+        }
 
         if (result.isEmpty()) return null;
         else {

@@ -40,7 +40,7 @@ public class Battle {
             if (defender.getField().getNumberOfNotDestroyedDecks() == 20) {
                 winner = attacker;
                 looser = defender;
-            } else {
+            } else if (shotResult == null) {
                 Gamer foo = attacker;
                 attacker = defender;
                 defender = foo;
