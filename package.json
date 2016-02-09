@@ -1,8 +1,8 @@
 {
   "devDependencies": {
-    "browser-sync": "^2.11.0",
-    "gulp": "^3.9.0",
+    "browser-sync": "^2.11.1",
+    "gulp": "^3.9.1",
     "gulp-jade": "^1.1.0",
-    "gulp-sass": "^2.1.1"
+    "gulp-sass": "^2.2.0"
   }
 }

@@ -4,7 +4,6 @@
     "jquery": "~2.2.0",
     "modernizr": "~3.3.0",
     "normalize-css": "normalize.css#~3.0.3",
-    "bootstrap": "~3.3.6",
     "fullpage.js": "~2.7.6"
   }
 }
