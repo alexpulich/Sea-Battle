@@ -16,6 +16,14 @@ public class Field {
             return decks;
         }
 
+        public HashSet<Coordinates> getDestroyedDecks() {
+            return destroyedDecks;
+        }
+
+        public HashSet<Coordinates> getSpaceAround() {
+            return spaceAround;
+        }
+
         public HashSet<Coordinates> getOccupiedSpace() {
             HashSet<Coordinates> result = new HashSet<>();
             result.addAll(decks);
@@ -65,12 +73,13 @@ public class Field {
         }
 
         private void setSpaceAround() {
-            decks.forEach((coord) -> {
-                int x = coord.getX();
-                int y = coord.getY();
+            decks.forEach((deck) -> {
+                int x = deck.getX();
+                int y = deck.getY();
 
-                for (int i = x; i < x + 3; i++) {
-                    for (int j = y; j < y + 3; j++) {
+                for (int i = x - 1; i < x + 2; i++) {
+                    for (int j = y - 1; j < y + 2; j++) {
+                        Coordinates coord = new Coordinates(i, j);
                         if (!spaceAround.contains(coord) &&
                                 !decks.contains(coord)) spaceAround.add(coord);
                     }
@@ -125,8 +134,37 @@ public class Field {
                 } while (isPlaceOccuped(ship));
 
                 ships.add(ship);
+                numberOfShipsForDecks[n]++;
             }
         }
+    }
+
+    public Cell[][] getCurrentConditions() {
+        Cell[][] result = new Cell[10][10];
+
+        for (int i = 0; i < 10; i++) {
+            for (int j = 0; j < 10; j++) {
+                Coordinates coordinates = new Coordinates(i, j);
+                Cell cell = Cell.Void;
+                if (shots.contains(coordinates)) cell = Cell.Miss;
+
+                for (Ship ship : ships) {
+                    if (ship.getOccupiedSpace().contains(coordinates)) {
+                        if (ship.getDecks().contains(coordinates)) {
+                            cell = Cell.Ship;
+                            break;
+                        } else if (ship.getDestroyedDecks().contains(coordinates)) {
+                            cell = Cell.Hit;
+                            break;
+                        } else if (ship.getSpaceAround().contains(coordinates)) break;
+                    }
+                }
+
+                result[i][j] = cell;
+            }
+        }
+
+        return result;
     }
 
     private boolean isPlaceOccuped(Ship ship) {
