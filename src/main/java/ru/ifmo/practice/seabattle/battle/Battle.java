@@ -1,17 +1,24 @@
 package ru.ifmo.practice.seabattle.battle;
 
+import ru.ifmo.practice.seabattle.exceptions.BattleNotFinishedException;
+import ru.ifmo.practice.seabattle.exceptions.IllegalNumberOfShipException;
+
+import java.util.HashSet;
+
 public class Battle {
     private Gamer firstGamer;
     private Gamer secondGamer;
     private Gamer winner;
     private Gamer looser;
 
-    public Gamer getWinner() {
-        return winner;
+    public Gamer getWinner() throws BattleNotFinishedException {
+        if (winner == null) throw new BattleNotFinishedException();
+        else return winner;
     }
 
-    public Gamer getLooser() {
-        return looser;
+    public Gamer getLooser() throws BattleNotFinishedException {
+        if (looser == null) throw new BattleNotFinishedException();
+        else return looser;
     }
 
     public Battle(Gamer firstGamer, Gamer secondGamer) {
@@ -21,26 +28,23 @@ public class Battle {
         looser = null;
     }
 
-    public void startBattle() {
-        Gamer currentAttacker = firstGamer;
-        Gamer currentDefender = secondGamer;
+    public void start() throws IllegalNumberOfShipException {
+        Gamer attacker = firstGamer;
+        Gamer defender = secondGamer;
+        HashSet<Coordinates> shotResult = null;
 
-        while (winner == null && looser == null) {
-            Coordinates coordinatesOfSootsCell = currentAttacker.nextRound();
-            Cell shotCell = currentDefender.getCurrentField().getCell(coordinatesOfSootsCell);
+        do {
+            Coordinates shot = attacker.nextRound(shotResult);
+            shotResult = defender.getField().shot(shot);
 
-            if (!shotCell.shotInCell()) continue;
-
-            if (currentDefender.getCurrentField().getNumberOfCellsWithShip() == 0) {
-                winner = currentAttacker;
-                looser = currentDefender;
+            if (defender.getField().getNumberOfNotDestroyedDecks() == 20) {
+                winner = attacker;
+                looser = defender;
+            } else {
+                Gamer foo = attacker;
+                attacker = defender;
+                defender = foo;
             }
-
-            if (shotCell.getCellStatus() == CellStatus.Miss) {
-                Gamer temp = currentAttacker;
-                currentAttacker = currentDefender;
-                currentDefender = temp;
-            }
-        }
+        } while (winner == null);
     }
 }
