@@ -88,14 +88,14 @@ public class UserDAOImpl implements UserDAO {
     @Override
     public boolean isNicknameUnique(String nickname) {
         Session session = null;
-        boolean flag=false;
+        boolean flag = false;
         try {
             session = HibernateUtil.getSessionFactory().openSession();
             session.beginTransaction();
             Query query = session.
                     createQuery("select 1 from User t where t.user_nickname = :key");
             query.setString("key", nickname);
-            flag=(query.uniqueResult() == null);
+            flag = (query.uniqueResult() == null);
             session.getTransaction().commit();
         } catch (Exception e) {
             //Обработку исключений пока не придумал
@@ -111,14 +111,14 @@ public class UserDAOImpl implements UserDAO {
     @Override
     public boolean isEmailUnique(String email) {
         Session session = null;
-        boolean flag=false;
+        boolean flag = false;
         try {
             session = HibernateUtil.getSessionFactory().openSession();
             session.beginTransaction();
             Query query = session.
                     createQuery("select 1 from User t where t.email = :key");
             query.setString("key", email);
-            flag=(query.uniqueResult() == null);
+            flag = (query.uniqueResult() == null);
             session.getTransaction().commit();
         } catch (Exception e) {
             //Обработку исключений пока не придумал
@@ -130,8 +130,9 @@ public class UserDAOImpl implements UserDAO {
             return (flag);
         }
     }
+
     @Override
-    public List<Match> getWins(int user_id){
+    public List<Match> getWins(int user_id) {
         Session session = null;
         List<Match> wins = new ArrayList<Match>();
         try {
@@ -140,7 +141,7 @@ public class UserDAOImpl implements UserDAO {
                     .setLong("winnerId", user_id);
             wins = (List<Match>) query.list();
         } catch (Exception e) {
-           System.out.println(e);
+            System.out.println(e);
         } finally {
             if (session != null && session.isOpen()) {
                 session.close();
@@ -166,5 +167,24 @@ public class UserDAOImpl implements UserDAO {
             }
         }
         return loses;
+    }
+
+    @Override
+    public List<Match> getAllMatches(int user_id) {
+        Session session = null;
+        List<Match> matches = new ArrayList<Match>();
+        try {
+            session = HibernateUtil.getSessionFactory().openSession();
+            Query query = session.createQuery("from Match where loser_id=:userId or winner_id=:userId")
+                    .setLong("userId", user_id);
+            matches = (List<Match>) query.list();
+        } catch (Exception e) {
+            System.out.println(e);
+        } finally {
+            if (session != null && session.isOpen()) {
+                session.close();
+            }
+        }
+        return matches;
     }
 }

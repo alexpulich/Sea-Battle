@@ -21,4 +21,6 @@ public interface UserDAO {
     public List<Match> getWins(int user_id);
 
     public List<Match> getLoses(int user_id);
+
+    public List<Match> getAllMatches(int user_id);
 }

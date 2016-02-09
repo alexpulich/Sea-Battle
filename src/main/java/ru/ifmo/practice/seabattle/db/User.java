@@ -53,6 +53,7 @@ public class User {
     public List<Match> getLoses() {
         return loses;
     }
+
     @OneToMany
     public List<Match> getWins() {
         return wins;
