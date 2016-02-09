@@ -40,7 +40,7 @@ public class UserDAOImpl implements UserDAO {
         }
         return user;
     }
-
+    //Для работы update необходимо сначала получить User из таблицы через get, изменить и апдейтить уже его
     @Override
     public void updateUser(int id, User user) throws SQLException {
         Session session = null;
@@ -53,7 +53,7 @@ public class UserDAOImpl implements UserDAO {
             session.close();
         }
     }
-
+    //Для работы Delete необходимо сначала получить User из таблицы через get, и передавать его как параметр для удаления
     @Override
     public void deleteUser(User user) throws SQLException {
         Session session = null;

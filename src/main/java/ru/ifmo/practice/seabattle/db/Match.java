@@ -13,6 +13,8 @@ public class Match {
     private int winner_id;
     private int winner_eff;
     private int loser_eff;
+    private String loser_nickname;
+    private String winner_nickname;
 
 
     @Id
@@ -39,6 +41,14 @@ public class Match {
         return loser_eff;
     }
 
+    public String getLoser_nickname() {
+        return loser_nickname;
+    }
+
+    public String getWinner_nickname() {
+        return winner_nickname;
+    }
+
     public void setLoser_eff(int loser_eff) {
         this.loser_eff = loser_eff;
     }
@@ -57,6 +67,14 @@ public class Match {
 
     public void setWinner_eff(int winner_eff) {
         this.winner_eff = winner_eff;
+    }
+
+    public void setLoser_nickname(String loser_nickname) {
+        this.loser_nickname = loser_nickname;
+    }
+
+    public void setWinner_nickname(String winner_nickname) {
+        this.winner_nickname = winner_nickname;
     }
 
     public Match() {

@@ -20,5 +20,11 @@
         <property name="loser_eff" type="java.lang.Integer">
             <column name="loser_eff" not-null="true" default="0"/>
         </property>
+        <property name="loser_nickname" type="java.lang.String">
+            <column name="loser_nickname" length="20" not-null="true"/>
+        </property>
+        <property name="winner_nickname" type="java.lang.String">
+            <column name="winner_nickname" length="20" not-null="true"/>
+        </property>
     </class>
 </hibernate-mapping>

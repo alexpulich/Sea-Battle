@@ -22,6 +22,7 @@ public class MatchDAOImpl implements MatchDAO {
         }
     }
 
+    //Для работы Delete необходимо сначала получить Match из таблицы через get, и передавать его как параметр для удаления
     @Override
     public void deleteMatch(Match match) throws SQLException {
         Session session = null;
