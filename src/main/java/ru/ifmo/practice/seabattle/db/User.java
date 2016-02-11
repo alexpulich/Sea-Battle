@@ -50,17 +50,17 @@ public class User {
         return raiting;
     }
 
-    @OneToMany
+    @Transient
     public List<Match> getLoses() {
         return loses;
     }
 
-    @OneToMany
+    @Transient
     public List<Match> getWins() {
         return wins;
     }
 
-    @OneToMany
+    @Transient
     public List<Match> getAllMatches() {
         return allMatches;
     }

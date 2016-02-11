@@ -5,8 +5,8 @@
 <hibernate-mapping>
     <class name="ru.ifmo.practice.seabattle.db.Match" table="Game" catalog="SEABATTLE">
         <id name="id" type="java.lang.Integer">
-            <column name="id" />
-            <generator class="identity" />
+            <column name="id"/>
+            <generator class="identity"/>
         </id>
         <property name="loser_id" type="java.lang.Integer">
             <column name="loser_id" not-null="true"/>
