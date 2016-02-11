@@ -49,18 +49,15 @@ public class User {
     public int getRaiting() {
         return raiting;
     }
-
-    @OneToMany
+    @Transient
     public List<Match> getLoses() {
         return loses;
     }
-
-    @OneToMany
+    @Transient
     public List<Match> getWins() {
         return wins;
     }
-
-    @OneToMany
+    @Transient
     public List<Match> getAllMatches() {
         return allMatches;
     }
@@ -108,4 +105,9 @@ public class User {
     public User() {
     }
 
+    public User(String user_nickname, String email, String password) {
+        this.user_nickname = user_nickname;
+        this.email = email;
+        this.password = password;
+    }
 }

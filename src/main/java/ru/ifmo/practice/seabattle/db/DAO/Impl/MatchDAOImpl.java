@@ -4,7 +4,6 @@ import org.hibernate.Session;
 import ru.ifmo.practice.seabattle.db.DAO.MatchDAO;
 import ru.ifmo.practice.seabattle.db.HibernateUtil;
 import ru.ifmo.practice.seabattle.db.Match;
-import ru.ifmo.practice.seabattle.db.User;
 
 import java.sql.SQLException;
 
