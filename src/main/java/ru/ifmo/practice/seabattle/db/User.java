@@ -49,14 +49,17 @@ public class User {
     public int getRaiting() {
         return raiting;
     }
+
     @Transient
     public List<Match> getLoses() {
         return loses;
     }
+
     @Transient
     public List<Match> getWins() {
         return wins;
     }
+
     @Transient
     public List<Match> getAllMatches() {
         return allMatches;
