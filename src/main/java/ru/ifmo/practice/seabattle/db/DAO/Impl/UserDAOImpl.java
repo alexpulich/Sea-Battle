@@ -15,14 +15,15 @@ public class UserDAOImpl implements UserDAO {
     @Override
     public void addUser(User user) throws SQLException {
         Session session = null;
-
-        session = HibernateUtil.getSessionFactory().openSession();
-        session.beginTransaction();
-        session.save(user);
-        session.getTransaction().commit();
-
-        if (session != null && session.isOpen()) {
-            session.close();
+        try {
+            session = HibernateUtil.getSessionFactory().openSession();
+            session.beginTransaction();
+            session.save(user);
+            session.getTransaction().commit();
+        } finally {
+            if (session != null && session.isOpen()) {
+                session.close();
+            }
         }
     }
 
@@ -30,41 +31,48 @@ public class UserDAOImpl implements UserDAO {
     public User getUserById(int id) throws SQLException {
         Session session = null;
         User user = null;
-
-        session = HibernateUtil.getSessionFactory().openSession();
-        session.beginTransaction();
-        user = (User) session.load(User.class, id);
-
-        if (session != null && session.isOpen()) {
-            session.close();
+        try {
+            session = HibernateUtil.getSessionFactory().openSession();
+            session.beginTransaction();
+            user = (User) session.load(User.class, id);
+        } finally {
+            if (session != null && session.isOpen()) {
+                session.close();
+            }
         }
         return user;
     }
+
     //Для работы update необходимо сначала получить User из таблицы через get, изменить и апдейтить уже его
     @Override
     public void updateUser(int id, User user) throws SQLException {
         Session session = null;
-        session = HibernateUtil.getSessionFactory().openSession();
-        session.beginTransaction();
-        session.update(user);
-        session.getTransaction().commit();
-
-        if (session != null && session.isOpen()) {
-            session.close();
+        try {
+            session = HibernateUtil.getSessionFactory().openSession();
+            session.beginTransaction();
+            session.update(user);
+            session.getTransaction().commit();
+        } finally {
+            if (session != null && session.isOpen()) {
+                session.close();
+            }
         }
+
     }
+
     //Для работы Delete необходимо сначала получить User из таблицы через get, и передавать его как параметр для удаления
     @Override
     public void deleteUser(User user) throws SQLException {
         Session session = null;
-
-        session = HibernateUtil.getSessionFactory().openSession();
-        session.beginTransaction();
-        session.delete(user);
-        session.getTransaction().commit();
-
-        if (session != null && session.isOpen()) {
-            session.close();
+        try {
+            session = HibernateUtil.getSessionFactory().openSession();
+            session.beginTransaction();
+            session.delete(user);
+            session.getTransaction().commit();
+        } finally {
+            if (session != null && session.isOpen()) {
+                session.close();
+            }
         }
     }
 
@@ -72,17 +80,18 @@ public class UserDAOImpl implements UserDAO {
     public boolean isNicknameUnique(String nickname) throws SQLException {
         Session session = null;
         boolean flag = false;
-
-        session = HibernateUtil.getSessionFactory().openSession();
-        session.beginTransaction();
-        Query query = session.
-                createQuery("select 1 from User t where t.user_nickname = :key");
-        query.setString("key", nickname);
-        flag = (query.uniqueResult() == null);
-        session.getTransaction().commit();
-
-        if (session != null && session.isOpen()) {
-            session.close();
+        try {
+            session = HibernateUtil.getSessionFactory().openSession();
+            session.beginTransaction();
+            Query query = session.
+                    createQuery("select 1 from User t where t.user_nickname = :key");
+            query.setString("key", nickname);
+            flag = (query.uniqueResult() == null);
+            session.getTransaction().commit();
+        } finally {
+            if (session != null && session.isOpen()) {
+                session.close();
+            }
         }
         return (flag);
     }
@@ -91,18 +100,18 @@ public class UserDAOImpl implements UserDAO {
     public boolean isEmailUnique(String email) throws SQLException {
         Session session = null;
         boolean flag = false;
-
-        session = HibernateUtil.getSessionFactory().openSession();
-        session.beginTransaction();
-        Query query = session.
-                createQuery("select 1 from User t where t.email = :key");
-        query.setString("key", email);
-        flag = (query.uniqueResult() == null);
-        session.getTransaction().commit();
-
-
-        if (session != null && session.isOpen()) {
-            session.close();
+        try {
+            session = HibernateUtil.getSessionFactory().openSession();
+            session.beginTransaction();
+            Query query = session.
+                    createQuery("select 1 from User t where t.email = :key");
+            query.setString("key", email);
+            flag = (query.uniqueResult() == null);
+            session.getTransaction().commit();
+        } finally {
+            if (session != null && session.isOpen()) {
+                session.close();
+            }
         }
         return (flag);
     }
@@ -111,14 +120,15 @@ public class UserDAOImpl implements UserDAO {
     public List<Match> getWins(int user_id) throws SQLException {
         Session session = null;
         List<Match> wins = new ArrayList<Match>();
-
-        session = HibernateUtil.getSessionFactory().openSession();
-        Query query = session.createQuery("from Match where winner_id=:winnerId")
-                .setLong("winnerId", user_id);
-        wins = (List<Match>) query.list();
-
-        if (session != null && session.isOpen()) {
-            session.close();
+        try {
+            session = HibernateUtil.getSessionFactory().openSession();
+            Query query = session.createQuery("from Match where winner_id=:winnerId")
+                    .setLong("winnerId", user_id);
+            wins = (List<Match>) query.list();
+        } finally {
+            if (session != null && session.isOpen()) {
+                session.close();
+            }
         }
         return wins;
     }
@@ -127,14 +137,15 @@ public class UserDAOImpl implements UserDAO {
     public List<Match> getLoses(int user_id) throws SQLException {
         Session session = null;
         List<Match> loses = new ArrayList<Match>();
-
-        session = HibernateUtil.getSessionFactory().openSession();
-        Query query = session.createQuery("from Match where loser_id=:loserId")
-                .setLong("loserId", user_id);
-        loses = (List<Match>) query.list();
-
-        if (session != null && session.isOpen()) {
-            session.close();
+        try {
+            session = HibernateUtil.getSessionFactory().openSession();
+            Query query = session.createQuery("from Match where loser_id=:loserId")
+                    .setLong("loserId", user_id);
+            loses = (List<Match>) query.list();
+        } finally {
+            if (session != null && session.isOpen()) {
+                session.close();
+            }
         }
         return loses;
     }
@@ -143,14 +154,15 @@ public class UserDAOImpl implements UserDAO {
     public List<Match> getAllMatches(int user_id) throws SQLException {
         Session session = null;
         List<Match> matches = new ArrayList<Match>();
-
-        session = HibernateUtil.getSessionFactory().openSession();
-        Query query = session.createQuery("from Match where loser_id=:userId or winner_id=:userId")
-                .setLong("userId", user_id);
-        matches = (List<Match>) query.list();
-
-        if (session != null && session.isOpen()) {
-            session.close();
+        try {
+            session = HibernateUtil.getSessionFactory().openSession();
+            Query query = session.createQuery("from Match where loser_id=:userId or winner_id=:userId")
+                    .setLong("userId", user_id);
+            matches = (List<Match>) query.list();
+        } finally {
+            if (session != null && session.isOpen()) {
+                session.close();
+            }
         }
         return matches;
     }

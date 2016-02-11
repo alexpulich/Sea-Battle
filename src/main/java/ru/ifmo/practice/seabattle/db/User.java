@@ -17,6 +17,7 @@ public class User {
     private int raiting;
     private List<Match> wins;
     private List<Match> loses;
+    private List<Match> allMatches;
 
     @Id
     @GeneratedValue(generator = "increment")
@@ -59,6 +60,11 @@ public class User {
         return wins;
     }
 
+    @OneToMany
+    public List<Match> getAllMatches() {
+        return allMatches;
+    }
+
     public void setId(int id) {
         this.id = id;
     }
@@ -93,6 +99,10 @@ public class User {
 
     public void setWins(List<Match> wins) {
         this.wins = wins;
+    }
+
+    public void setAllMatches(List<Match> allMatches) {
+        this.allMatches = allMatches;
     }
 
     public User() {

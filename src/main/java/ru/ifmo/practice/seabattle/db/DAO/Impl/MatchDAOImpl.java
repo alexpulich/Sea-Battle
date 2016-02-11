@@ -12,13 +12,15 @@ public class MatchDAOImpl implements MatchDAO {
     @Override
     public void addMatch(Match match) throws SQLException {
         Session session = null;
-        session = HibernateUtil.getSessionFactory().openSession();
-        session.beginTransaction();
-        session.save(match);
-        session.getTransaction().commit();
-
-        if (session != null && session.isOpen()) {
-            session.close();
+        try {
+            session = HibernateUtil.getSessionFactory().openSession();
+            session.beginTransaction();
+            session.save(match);
+            session.getTransaction().commit();
+        } finally {
+            if (session != null && session.isOpen()) {
+                session.close();
+            }
         }
     }
 
@@ -26,13 +28,16 @@ public class MatchDAOImpl implements MatchDAO {
     @Override
     public void deleteMatch(Match match) throws SQLException {
         Session session = null;
-        session = HibernateUtil.getSessionFactory().openSession();
-        session.beginTransaction();
-        session.delete(match);
-        session.getTransaction().commit();
+        try {
+            session = HibernateUtil.getSessionFactory().openSession();
+            session.beginTransaction();
+            session.delete(match);
+            session.getTransaction().commit();
 
-        if (session != null && session.isOpen()) {
-            session.close();
+        } finally {
+            if (session != null && session.isOpen()) {
+                session.close();
+            }
         }
     }
 
@@ -40,11 +45,14 @@ public class MatchDAOImpl implements MatchDAO {
     public Match getMatchById(int id) throws SQLException {
         Session session = null;
         Match match = null;
-        session = HibernateUtil.getSessionFactory().openSession();
-        session.beginTransaction();
-        match = (Match) session.load(Match.class, id);
-        if (session != null && session.isOpen()) {
-            session.close();
+        try {
+            session = HibernateUtil.getSessionFactory().openSession();
+            session.beginTransaction();
+            match = (Match) session.load(Match.class, id);
+        } finally {
+            if (session != null && session.isOpen()) {
+                session.close();
+            }
         }
         return match;
     }
