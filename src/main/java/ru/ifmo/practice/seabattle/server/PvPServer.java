@@ -16,8 +16,8 @@ import java.util.*;
 
 @ServerEndpoint("/pvpserver")
 public class PvPServer extends Server implements SeaBattleServer {
-    private ArrayList<Room> freeRooms = new ArrayList<>();
-    private ArrayList<Room> fullRooms = new ArrayList<>();
+    private static ArrayList<Room> freeRooms = new ArrayList<>();
+    private static ArrayList<Room> fullRooms = new ArrayList<>();
     private static HashMap<String, Session> sessions = new HashMap<>();
     private static HashMap<String, Player> players = new HashMap<>();
     private static HashMap<String, Battle> battles = new HashMap<>();
