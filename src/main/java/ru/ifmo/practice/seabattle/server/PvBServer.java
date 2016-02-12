@@ -18,7 +18,7 @@ import java.util.Map;
 import java.util.Set;
 
 @ServerEndpoint("/pvbserver")
-public class PvBServer extends HttpServlet implements ShotListener {
+public class PvBServer extends HttpServlet implements ShotListener, BattleEndedListener {
     private static HashMap<String, Session> sessions = new HashMap<>();
     private static HashMap<String, Player> players = new HashMap<>();
     private static HashMap<String, Battle> battles = new HashMap<>();
@@ -34,7 +34,9 @@ public class PvBServer extends HttpServlet implements ShotListener {
     @OnClose
     public void onClose(Session session) throws IOException {
         sessions.remove(session.getId());
-        if (players.containsKey(session.getId())) players.remove(session.getId());
+        if (players.containsKey(session.getId())) {
+            players.remove(session.getId());
+        }
         if (battles.containsKey(session.getId())) battles.remove(session.getId());
         if (fields.containsKey(session.getId())) {
             Field field = fields.get(session.getId());
@@ -190,6 +192,37 @@ public class PvBServer extends HttpServlet implements ShotListener {
             } catch (IOException e) {
                 e.printStackTrace();
             }
+        }
+    }
+
+    @Override
+    public void battleEnd(Gamer winner, Gamer loser) {
+        Gamer gamer;
+        BattleResult result;
+
+        if (players.containsValue(winner)) {
+            gamer = winner;
+            result = BattleResult.Win;
+        }
+        else if (players.containsValue(loser)) {
+            gamer = loser;
+            result = BattleResult.Lose;
+        }
+        else return;
+
+        String sessionId = "";
+        Set<Map.Entry<String, Player>> entrySet = players.entrySet();
+        for (Map.Entry<String, Player> entry : entrySet) {
+            if (entry.getValue().equals(gamer)) {
+                sessionId = entry.getKey();
+                break;
+            }
+        }
+
+        try {
+            sendMessage(new Gson().toJson(result), sessionId);
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 }

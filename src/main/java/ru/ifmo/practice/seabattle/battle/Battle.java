@@ -6,6 +6,7 @@ import ru.ifmo.practice.seabattle.exceptions.IllegalNumberOfShipException;
 import java.util.HashSet;
 
 public class Battle {
+    private static HashSet<BattleEndedListener> listeners = new HashSet<>();
     private Gamer firstGamer;
     private Gamer secondGamer;
     private Gamer winner;
@@ -16,7 +17,7 @@ public class Battle {
         else return winner;
     }
 
-    public Gamer getLooser() throws BattleNotFinishedException {
+    public Gamer getLoser() throws BattleNotFinishedException {
         if (looser == null) throw new BattleNotFinishedException();
         else return looser;
     }
@@ -46,5 +47,19 @@ public class Battle {
                 defender = foo;
             }
         } while (winner == null);
+
+        fireListeners();
+    }
+
+    public void addListener(BattleEndedListener listener) {
+        listeners.add(listener);
+    }
+
+    public boolean removeListener(BattleEndedListener listener) {
+        return listeners.remove(listener);
+    }
+
+    private void fireListeners() {
+        listeners.forEach((listener) -> listener.battleEnd(winner, looser));
     }
 }
