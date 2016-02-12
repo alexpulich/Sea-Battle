@@ -54,12 +54,10 @@ public class Field {
         shots.add(shot);
         HashSet<Coordinates> result = new HashSet<>();
 
-        for (Ship ship : ships) {
-            if (ship.getDecks().contains(shot)) {
+        ships.forEach((ship) -> {
+            if (ship.getDecks().contains(shot))
                 result.addAll(ship.shot(shot));
-                break;
-            }
-        }
+        });
 
         if (result.isEmpty()) return null;
         else {
