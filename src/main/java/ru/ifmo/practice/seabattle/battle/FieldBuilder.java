@@ -53,4 +53,58 @@ public class FieldBuilder {
 
         return false;
     }
+
+    public void clear() {
+        ships.clear();
+        for (int i = 0; i < numberOfShipsForDecks.length; i++) {
+            numberOfShipsForDecks[i] = 0;
+        }
+    }
+
+    public void addShips(Cell[][] field) throws IllegalNumberOfShipException {
+        if (field.length != 10) throw new IllegalArgumentException("Поле должно быть 10x10");
+
+        HashSet<Coordinates> blacklist = new HashSet<>();
+        HashSet<HashSet<Coordinates>> ships = new HashSet<>();
+
+        for (int i = 0; i < field.length; i++) {
+            int n = field[i].length;
+            if (n != 10) throw new IllegalArgumentException("Поле должно быть 10x10");
+            for (int j = 0; j < n; j++) {
+                if (!blacklist.contains(new Coordinates(i, j))) {
+                    if (field[i][j] == Cell.Ship) {
+                        HashSet<Coordinates> ship = new HashSet<>();
+                        ship.add(new Coordinates(i, j));
+
+                        int k = 1;
+
+                        if (j + k < n && field[i][j + k] == Cell.Ship) {
+                            ship.add(new Coordinates(i, j + k));
+                            k++;
+
+                            while (j + k < n) {
+                                if (field[i][j + k] == Cell.Ship) ship.add(new Coordinates(i, j + k));
+                                else break;
+                            }
+                        } else if (i + k < n && field[i + k][j] == Cell.Ship) {
+                            ship.add(new Coordinates(i + k, j));
+                            k++;
+
+                            while (i + k < n) {
+                                if (field[i + k][j] == Cell.Ship) ship.add(new Coordinates(i + k, j));
+                                else break;
+                            }
+                        }
+
+                        blacklist.addAll(ship);
+                        ships.add(ship);
+                    } else if (field[i][j] != Cell.Void) {
+                        throw new IllegalArgumentException("Поле должо содержать только пустые клетки и корабли");
+                    }
+                }
+            }
+        }
+
+        for (HashSet<Coordinates> ship : ships) addShip(ship);
+    }
 }
