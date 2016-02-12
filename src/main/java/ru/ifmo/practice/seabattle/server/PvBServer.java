@@ -3,9 +3,7 @@ package ru.ifmo.practice.seabattle.server;
 import com.google.gson.Gson;
 import ru.ifmo.practice.seabattle.battle.*;
 import ru.ifmo.practice.seabattle.battle.bot.Bot;
-import ru.ifmo.practice.seabattle.exceptions.IllegalNumberOfShipException;
 
-import javax.servlet.http.HttpServlet;
 import javax.websocket.OnClose;
 import javax.websocket.OnMessage;
 import javax.websocket.OnOpen;
@@ -18,7 +16,7 @@ import java.util.Map;
 import java.util.Set;
 
 @ServerEndpoint("/pvbserver")
-public class PvBServer extends HttpServlet implements ShotListener, BattleEndedListener {
+public class PvBServer extends Server implements SeaBattleServer {
     private static HashMap<String, Session> sessions = new HashMap<>();
     private static HashMap<String, Player> players = new HashMap<>();
     private static HashMap<String, Battle> battles = new HashMap<>();
@@ -47,129 +45,46 @@ public class PvBServer extends HttpServlet implements ShotListener, BattleEndedL
     }
 
     @OnMessage
-    public void parseMessage(String message, Session session) throws IOException {
-        Command lastCommand = commands.get(session.getId());
-        if (lastCommand == null) {
-            Command command = parseCommand(message);
-            if (command != null) {
-                switch (command) {
-                    case PlaceShipsRandom:
-                        placeShipsRandom(session.getId());
-                        break;
-
-                    case StartBattle:
-                        startBattle(session.getId());
-                        break;
-
-                    default:
-                        commands.put(session.getId(), command);
-                        break;
-                }
-            }
-        } else {
-            switch (lastCommand) {
-                case SetField:
-                    setField(message, session.getId());
-                    break;
-
-                case Shot:
-                    shot(message, session.getId());
-            }
-        }
-    }
-
-    private void sendMessage(String message, Session session) throws IOException {
-        session.getBasicRemote().sendText(message);
+    public void onMessage(String message, Session session) throws IOException {
+        commands.put(session.getId(),
+                parseMessage(commands.get(session.getId()), message, this, session.getId()));
     }
 
     private void sendMessage(String message, String sessionId) throws IOException {
         sendMessage(message, sessions.get(sessionId));
     }
 
-    private Command parseCommand(String message) {
-        return new Gson().fromJson(message, Command.class);
+    @Override
+    public void placeShipsRandom(String sessionID) {
+        fields.put(sessionID, placeShipsRandom(this));
     }
 
-    private void placeShipsRandom(String sessionID) {
-        FieldBuilder builder = new FieldBuilder();
-        builder.placeShipsRandom();
-        Field field = builder.create();
-        field.addShotListener(this);
-        fields.put(sessionID, field);
-    }
-
-    private void setField(String message, String sessionId) throws IOException {
-        Cell[][] fieldCells = new Gson().fromJson(message, Cell[][].class);
-
-        FieldBuilder fieldBuilder = new FieldBuilder();
-        Field field;
-
-        try {
-            fieldBuilder.addShips(fieldCells);
-            field = fieldBuilder.create();
-            field.addShotListener(this);
-        } catch (IllegalNumberOfShipException | IllegalArgumentException e) {
-            sendMessage(new Gson().toJson(e.getMessage()), sessionId);
-            return;
+    @Override
+    public void setField(String message, String sessionId) throws IOException {
+        Field field = setField(message, this);
+        if (field == null) sendMessage(new Gson().toJson(Notice.PlacementError), sessionId);
+        else {
+            fields.put(sessionId, field);
+            sendMessage(new Gson().toJson(Notice.ShipsPlaced), sessionId);
         }
-
-        fields.put(sessionId, field);
-        sendMessage(new Gson().toJson("ok"), sessionId);
     }
 
-    private void startBattle(String sessionId) {
-        Player player;
-
+    @Override
+    public void startBattle(String sessionId) {
         if (fields.containsKey(sessionId)) {
-            player = new Player("Игрок", fields.get(sessionId));
+            Player player = new Player("Игрок", fields.get(sessionId));
             players.put(sessionId, player);
-        } else return;
-
-        Battle battle = new Battle(player, new Bot("Бот"));
-        battles.put(sessionId, battle);
-        battle.start();
+            Battle battle = new Battle(player, new Bot("Бот"));
+            battles.put(sessionId, battle);
+            battle.start();
+        }
     }
 
-    private void shot(String message, String sessionId) throws IOException {
-        Coordinates shot = new Gson().fromJson(message, Coordinates.class);
-        Player player;
-
+    @Override
+    public void shot(String message, String sessionId) throws IOException {
         if (players.containsKey(sessionId)) {
-            player = players.get(sessionId);
-        } else return;
-
-        player.setShot(shot);
-
-        while (player.getShotResult() == null) {
-            try {
-                wait(1000);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
+            sendMessage(new Gson().toJson(shot(message, players.get(sessionId))), sessionId);
         }
-
-        HashSet<Coordinates> shotResult = new HashSet<>();
-        shotResult.addAll(player.getShotResult());
-        player.setShotResult(null);
-
-        Coordinates hit;
-        Coordinates[] misses;
-
-        if (shotResult.isEmpty()) {
-            hit = null;
-            misses = new Coordinates[1];
-            misses[0] = shot;
-        } else {
-            hit = shot;
-            shotResult.remove(shot);
-            if (shotResult.isEmpty()) {
-                misses = null;
-            } else {
-                misses = shotResult.toArray(new Coordinates[shotResult.size()]);
-            }
-        }
-
-        sendMessage(new Gson().toJson(new FieldChanges(FieldStatus.Second, hit, misses)), sessionId);
     }
 
     @Override
