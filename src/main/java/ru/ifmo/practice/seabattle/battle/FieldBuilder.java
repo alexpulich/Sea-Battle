@@ -15,25 +15,48 @@ public class FieldBuilder {
         return new Field(ships);
     }
 
+    public void placeShipsRandom() {
+        clear();
+
+        for (int i = 1; i <= 4; i++) {
+            int n = 5 - i;  // n - Количество клеток в корабле
+            // i - Количество n-клеточных кораблей
+
+            for (int j = 0; j < i; j++) {
+                Ship ship;
+                do {
+                    ship = new Ship(n);
+                } while (isPlaceOccuped(ship));
+
+                ships.add(ship);
+                numberOfShipsForDecks[n]++;
+            }
+        }
+    }
+
+    private boolean isPlaceOccuped(Ship ship) {
+        return isPlaceOccuped(ship.getDecks());
+    }
+
+    private boolean isPlaceOccuped(HashSet<Coordinates> shipCoordinates) {
+        for (Ship ship : ships)
+            for (Coordinates coordinates : shipCoordinates)
+                if (ship.getOccupiedSpace().contains(coordinates))
+                    return true;
+
+        return false;
+    }
+
     public void addShip(HashSet<Coordinates> shipCoordinates) throws IllegalNumberOfShipException {
         if (ships.size() == 10) throw new IllegalNumberOfShipException("Поле уже заполнено");
 
-        shipCoordinates.forEach((deck) -> {
-            if (deck.getX() > 9 || deck.getX() < 0
-                    || deck.getY() > 9 || deck.getY() < 0)
-                throw new IllegalArgumentException("Корабль не помещается на поле");
-        });
-
-        ships.forEach((ship) ->
-                shipCoordinates.forEach((coord) -> {
-                    if (ship.getOccupiedSpace().contains(coord))
-                        throw new IllegalArgumentException("Место уже занято");
-                })
-        );
+        if (isPlaceOccuped(shipCoordinates)) {
+            throw new IllegalArgumentException("Место уже занято");
+        }
 
         if (numberOfShipsForDecks[shipCoordinates.size()] ==
                 5 - shipCoordinates.size())
-            throw new IllegalNumberOfShipException("Количество " +
+            throw new IllegalArgumentException("Количество " +
                     shipCoordinates.size() + " палубных кораблей превышено");
 
         ships.add(new Ship(shipCoordinates));
@@ -105,6 +128,7 @@ public class FieldBuilder {
             }
         }
 
+        clear();
         for (HashSet<Coordinates> ship : ships) addShip(ship);
     }
 }
