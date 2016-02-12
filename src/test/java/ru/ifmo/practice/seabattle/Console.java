@@ -44,4 +44,10 @@ public class Console {
         System.out.print("\n" + nickname);
         outputField(field);
     }
+
+    public static void outputMessage(String message) {
+        System.out.print("\n");
+        System.out.print(message + "\n");
+        System.out.print("\n");
+    }
 }

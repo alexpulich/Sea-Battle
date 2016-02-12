@@ -1,7 +1,6 @@
 package ru.ifmo.practice.seabattle.server;
 
 import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import ru.ifmo.practice.seabattle.battle.*;
 import ru.ifmo.practice.seabattle.battle.bot.Bot;
 import ru.ifmo.practice.seabattle.exceptions.IllegalNumberOfShipException;
@@ -92,13 +91,9 @@ public class PvBServer extends HttpServlet implements ShotListener {
     private void placeShipsRandom(String sessionID) {
         FieldBuilder builder = new FieldBuilder();
         builder.placeShipsRandom();
-        try {
-            Field field = builder.create();
-            field.addShotListener(this);
-            fields.put(sessionID, field);
-        } catch (IllegalNumberOfShipException e) {
-            e.printStackTrace();
-        }
+        Field field = builder.create();
+        field.addShotListener(this);
+        fields.put(sessionID, field);
     }
 
     private void setField(String message, String sessionId) throws IOException {
@@ -107,20 +102,17 @@ public class PvBServer extends HttpServlet implements ShotListener {
         FieldBuilder fieldBuilder = new FieldBuilder();
         Field field;
 
-        GsonBuilder gsonBuilder = new GsonBuilder();
-        Gson gson = gsonBuilder.create();
-
         try {
             fieldBuilder.addShips(fieldCells);
             field = fieldBuilder.create();
             field.addShotListener(this);
         } catch (IllegalNumberOfShipException | IllegalArgumentException e) {
-            sendMessage(gson.toJson(e.getMessage()), sessionId);
+            sendMessage(new Gson().toJson(e.getMessage()), sessionId);
             return;
         }
 
         fields.put(sessionId, field);
-        sendMessage(gson.toJson("ok"), sessionId);
+        sendMessage(new Gson().toJson("ok"), sessionId);
     }
 
     private void startBattle(String sessionId) {
@@ -133,11 +125,7 @@ public class PvBServer extends HttpServlet implements ShotListener {
 
         Battle battle = new Battle(player, new Bot("Бот"));
         battles.put(sessionId, battle);
-        try {
-            battle.start();
-        } catch (IllegalNumberOfShipException e) {
-            e.printStackTrace();
-        }
+        battle.start();
     }
 
     private void shot(String message, String sessionId) throws IOException {
@@ -179,13 +167,11 @@ public class PvBServer extends HttpServlet implements ShotListener {
             }
         }
 
-        GsonBuilder builder = new GsonBuilder();
-        Gson gson = builder.create();
-        sendMessage(gson.toJson(new FieldChanges(FieldStatus.Second, hit, misses)), sessionId);
+        sendMessage(new Gson().toJson(new FieldChanges(FieldStatus.Second, hit, misses)), sessionId);
     }
 
     @Override
-    public void shot(Field field, Coordinates hit, HashSet<Coordinates> misses) throws IOException {
+    public void shot(Field field, Coordinates hit, HashSet<Coordinates> misses) {
         if (fields.containsValue(field)) {
             String sessionId = "";
             Set<Map.Entry<String, Field>> entrySet = fields.entrySet();
@@ -199,10 +185,11 @@ public class PvBServer extends HttpServlet implements ShotListener {
             FieldChanges fieldChanges = new FieldChanges(FieldStatus.First, hit,
                     misses.toArray(new Coordinates[misses.size()]));
 
-            GsonBuilder builder = new GsonBuilder();
-            Gson gson = builder.create();
-
-            sendMessage(gson.toJson(fieldChanges), sessionId);
+            try {
+                sendMessage(new Gson().toJson(fieldChanges), sessionId);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
     }
 }
