@@ -9,6 +9,7 @@ public class Field {
     private ArrayList<Ship> ships = new ArrayList<>();
     private int numberOfDestroyedDecks = 0;
     private HashSet<Coordinates> shots = new HashSet<>();
+    private static HashSet<ShotListener> listeners = new HashSet<>();
 
     Field(ArrayList<Ship> ships) {
         this.ships = ships;
@@ -59,10 +60,45 @@ public class Field {
                 result.addAll(ship.shot(shot));
         });
 
-        if (result.isEmpty()) return null;
+        if (result.isEmpty()) {
+            HashSet<Coordinates> misses = new HashSet<>();
+            misses.add(shot);
+            fireListeners(null, misses);
+
+            return null;
+        }
         else {
+            HashSet<Coordinates> misses = new HashSet<>();
+            misses.addAll(result);
+            result.remove(shot);
+            if (misses.isEmpty()) misses = null;
+            fireListeners(shot, misses);
+
             numberOfDestroyedDecks++;
             return result;
         }
+    }
+
+    public void addShotListener(ShotListener listener) {
+        listeners.add(listener);
+    }
+
+    public boolean removeShotListener(ShotListener listener) {
+        return listeners.remove(listener);
+    }
+
+    private void fireListeners(Coordinates hit, HashSet<Coordinates> misses) {
+        listeners.forEach(listener -> listener.shot(this, hit, misses));
+    }
+
+    @Override
+    public String toString() {
+        Cell[][] currentField = getCurrentConditions();
+        return currentField.toString();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        return this.toString().equals(toString());
     }
 }
