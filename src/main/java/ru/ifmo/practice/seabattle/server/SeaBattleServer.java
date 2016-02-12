@@ -8,6 +8,6 @@ import java.io.IOException;
 public interface SeaBattleServer extends ShotListener, BattleEndedListener {
     void placeShipsRandom(String sessionID);
     void setField(String message, String sessionId) throws IOException;
-    void startBattle(String sessionId);
+    void startBattle(String sessionId) throws IOException;
     void shot(String message, String sessionId) throws IOException;
 }

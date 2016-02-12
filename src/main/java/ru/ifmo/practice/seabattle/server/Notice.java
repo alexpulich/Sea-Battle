@@ -1,5 +1,5 @@
 package ru.ifmo.practice.seabattle.server;
 
 public enum Notice {
-    ShipsPlaced, PlacementError, OpponentFound
+    ShipsPlaced, PlacementError, OpponentFound, FirstTurn, SecondTurn
 }

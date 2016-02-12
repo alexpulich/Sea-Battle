@@ -7,7 +7,10 @@ import ru.ifmo.practice.seabattle.exceptions.IllegalNumberOfShipException;
 import javax.servlet.http.HttpServlet;
 import javax.websocket.Session;
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 class Server extends HttpServlet {
     protected Command parseMessage(Command lastCommand, String message,
@@ -109,5 +112,16 @@ class Server extends HttpServlet {
         }
 
         return new FieldChanges(FieldStatus.Second, hit, misses);
+    }
+
+    protected <V> String getSessionId(HashMap<String, V> map, V value) {
+        Set<Map.Entry<String, V>> entrySet = map.entrySet();
+        for (Map.Entry<String, V> entry : entrySet) {
+            if (entry.getValue().equals(value)) {
+                return entry.getKey();
+            }
+        }
+
+        return null;
     }
 }
