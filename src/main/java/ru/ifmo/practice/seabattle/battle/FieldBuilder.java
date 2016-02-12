@@ -108,6 +108,7 @@ public class FieldBuilder {
                             while (j + k < n) {
                                 if (field[i][j + k] == Cell.Ship) ship.add(new Coordinates(i, j + k));
                                 else break;
+                                k++;
                             }
                         } else if (i + k < n && field[i + k][j] == Cell.Ship) {
                             ship.add(new Coordinates(i + k, j));
@@ -116,6 +117,7 @@ public class FieldBuilder {
                             while (i + k < n) {
                                 if (field[i + k][j] == Cell.Ship) ship.add(new Coordinates(i + k, j));
                                 else break;
+                                k++;
                             }
                         }
 

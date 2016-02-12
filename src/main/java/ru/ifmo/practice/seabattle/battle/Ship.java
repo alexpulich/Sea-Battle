@@ -86,8 +86,9 @@ class Ship {
             for (int i = x - 1; i < x + 2; i++) {
                 for (int j = y - 1; j < y + 2; j++) {
                     Coordinates coord = new Coordinates(i, j);
-                    if (!spaceAround.contains(coord) &&
-                            !decks.contains(coord)) spaceAround.add(coord);
+                    if (!spaceAround.contains(coord) && !decks.contains(coord)
+                            && i >= 0 && i <= 9 && j >=0 && j <=9 )
+                        spaceAround.add(coord);
                 }
             }
         });
