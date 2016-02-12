@@ -37,10 +37,10 @@ public class Battle {
             Coordinates shot = attacker.nextRound(shotResult);
             shotResult = defender.getField().shot(shot);
 
-            if (defender.getField().getNumberOfNotDestroyedDecks() == 20) {
+            if (defender.getField().getNumberOfDestroyedDecks() == 20) {
                 winner = attacker;
                 looser = defender;
-            } else {
+            } else if (shotResult == null) {
                 Gamer foo = attacker;
                 attacker = defender;
                 defender = foo;
