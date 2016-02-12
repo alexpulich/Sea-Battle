@@ -2,7 +2,9 @@ package ru.ifmo.practice.seabattle.battle.bot;
 
 import ru.ifmo.practice.seabattle.battle.Coordinates;
 import ru.ifmo.practice.seabattle.battle.Field;
+import ru.ifmo.practice.seabattle.battle.FieldBuilder;
 import ru.ifmo.practice.seabattle.battle.Gamer;
+import ru.ifmo.practice.seabattle.exceptions.IllegalNumberOfShipException;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -17,8 +19,13 @@ public class Bot implements Gamer {
 
     public Bot(String nickname) {
         this.nickname = nickname;
-        field = new Field();
-        field.placeShipsRandom();
+        FieldBuilder builder = new FieldBuilder();
+        builder.placeShipsRandom();
+        try {
+            field = builder.create();
+        } catch (IllegalNumberOfShipException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
