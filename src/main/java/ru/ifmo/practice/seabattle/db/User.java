@@ -26,26 +26,32 @@ public class User {
         return id;
     }
 
+    @Column(name = "user_nickname", length = 20, unique = true, nullable = false)
     public String getUser_nickname() {
         return user_nickname;
     }
 
+    @Column(name = "email", length = 20, unique = true, nullable = false)
     public String getEmail() {
         return email;
     }
 
+    @Column(name = "password", length = 20, nullable = false)
     public String getPassword() {
         return password;
     }
 
+    @Column(name = "games_count", columnDefinition = "int default 0", nullable = false)
     public int getGames_count() {
         return games_count;
     }
 
+    @Column(name = "wins_count", columnDefinition = "int default 0", nullable = false)
     public int getWins_count() {
         return wins_count;
     }
 
+    @Column(name = "raiting", columnDefinition = "int default 0", nullable = false)
     public int getRaiting() {
         return raiting;
     }

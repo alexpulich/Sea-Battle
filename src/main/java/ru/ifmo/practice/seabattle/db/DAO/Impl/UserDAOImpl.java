@@ -62,7 +62,6 @@ public class UserDAOImpl implements UserDAO {
     @Override
     public boolean isNicknameUnique(String nickname) throws SQLException {
         return transaction((Session session) -> {
-            boolean flag = false;
             Query query = session.
                     createQuery("select 1 from User t where t.user_nickname = :key");
             query.setString("key", nickname);
@@ -73,7 +72,6 @@ public class UserDAOImpl implements UserDAO {
     @Override
     public boolean isEmailUnique(String email) throws SQLException {
         return transaction((Session session) -> {
-            boolean flag = false;
             Query query = session.
                     createQuery("select 1 from User t where t.email = :key");
             query.setString("key", email);

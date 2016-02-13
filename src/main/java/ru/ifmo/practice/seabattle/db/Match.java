@@ -24,27 +24,32 @@ public class Match {
         return id;
     }
 
-
+    @Column(name = "loser_id", nullable = false)
     public int getLoser_id() {
         return loser_id;
     }
 
+    @Column(name = "winner_id", nullable = false)
     public int getWinner_id() {
         return winner_id;
     }
 
+    @Column(name = "winner_eff", nullable = false)
     public int getWinner_eff() {
         return winner_eff;
     }
 
+    @Column(name = "loser_eff", nullable = false)
     public int getLoser_eff() {
         return loser_eff;
     }
 
+    @Column(name = "loser_nickname", length = 20, nullable = false)
     public String getLoser_nickname() {
         return loser_nickname;
     }
 
+    @Column(name = "winner_nickname", length = 20, nullable = false)
     public String getWinner_nickname() {
         return winner_nickname;
     }
