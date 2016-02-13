@@ -91,7 +91,8 @@ public class PvPServer extends Server implements SeaBattleServer {
                 parseMessage(commands.get(session.getId()), message, this, session.getId()));
     }
 
-    private void sendMessage(String message, String sessionId) throws IOException {
+    @Override
+    public void sendMessage(String message, String sessionId) throws IOException {
         sendMessage(message, sessions.get(sessionId));
     }
 
@@ -103,10 +104,10 @@ public class PvPServer extends Server implements SeaBattleServer {
     @Override
     public void setField(String message, String sessionId) throws IOException {
         Field field = setField(message, this);
-        if (field == null) sendMessage(new Gson().toJson(Notice.PlacementError), sessionId);
+        if (field == null) sendMessage(new Gson().toJson(Notice.OK), sessionId);
         else {
             fields.put(sessionId, field);
-            sendMessage(new Gson().toJson(Notice.ShipsPlaced), sessionId);
+            sendMessage(new Gson().toJson(Notice.Error), sessionId);
         }
     }
 

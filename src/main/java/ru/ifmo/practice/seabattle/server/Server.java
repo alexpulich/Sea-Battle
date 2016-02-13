@@ -31,6 +31,7 @@ class Server extends HttpServlet {
 
                     default:
                         result = command;
+                        server.sendMessage(new Gson().toJson(Notice.OK), sessionID);
                         break;
                 }
             }

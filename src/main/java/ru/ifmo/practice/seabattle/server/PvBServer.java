@@ -55,33 +55,40 @@ public class PvBServer extends Server implements SeaBattleServer {
                 parseMessage(commands.get(session.getId()), message, this, session.getId()));
     }
 
-    private void sendMessage(String message, String sessionId) throws IOException {
+    @Override
+    public void sendMessage(String message, String sessionId) throws IOException {
         sendMessage(message, sessions.get(sessionId));
     }
 
     @Override
-    public void placeShipsRandom(String sessionID) {
-        fields.put(sessionID, placeShipsRandom(this));
+    public void placeShipsRandom(String sessionID) throws IOException {
+        Field field = placeShipsRandom(this);
+        fields.put(sessionID, field);
+        sendMessage(new Gson().toJson(field.getCurrentConditions()), sessionID);
     }
 
     @Override
     public void setField(String message, String sessionId) throws IOException {
         Field field = setField(message, this);
-        if (field == null) sendMessage(new Gson().toJson(Notice.PlacementError), sessionId);
+        if (field == null) sendMessage(new Gson().toJson(Notice.OK), sessionId);
         else {
             fields.put(sessionId, field);
-            sendMessage(new Gson().toJson(Notice.ShipsPlaced), sessionId);
+            sendMessage(new Gson().toJson(Notice.Error), sessionId);
         }
     }
 
     @Override
-    public void startBattle(String sessionId) {
+    public void startBattle(String sessionId) throws IOException {
         if (fields.containsKey(sessionId)) {
             Player player = new Player("Игрок", fields.get(sessionId));
             players.put(sessionId, player);
             Battle battle = new Battle(player, new Bot("Бот"));
             battles.put(sessionId, battle);
             battle.start();
+
+            sendMessage(new Gson().toJson(Notice.OK), sessionId);
+        } else {
+            sendMessage(new Gson().toJson(Notice.Error), sessionId);
         }
     }
 
