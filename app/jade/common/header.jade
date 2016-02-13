@@ -6,5 +6,5 @@ header.header
                 -var navArr = {"Главная":"main", "Команда":"about"}
                 each val, key in navArr
                     li.nav-item(data-menuanchor=val)
-                        -var link = "#" + val;
+                        -var link = "/#" + val;
                         a.nav-link(href=link)=key
