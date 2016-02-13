@@ -70,7 +70,7 @@ public class Field {
         else {
             HashSet<Coordinates> misses = new HashSet<>();
             misses.addAll(result);
-            result.remove(shot);
+            misses.remove(shot);
             if (misses.isEmpty()) misses = null;
             fireListeners(shot, misses);
 

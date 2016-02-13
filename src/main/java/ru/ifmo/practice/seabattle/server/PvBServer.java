@@ -1,7 +1,10 @@
 package ru.ifmo.practice.seabattle.server;
 
 import com.google.gson.Gson;
-import ru.ifmo.practice.seabattle.battle.*;
+import ru.ifmo.practice.seabattle.battle.Battle;
+import ru.ifmo.practice.seabattle.battle.Coordinates;
+import ru.ifmo.practice.seabattle.battle.Field;
+import ru.ifmo.practice.seabattle.battle.Gamer;
 import ru.ifmo.practice.seabattle.battle.bot.Bot;
 
 import javax.websocket.OnClose;
@@ -12,8 +15,6 @@ import javax.websocket.server.ServerEndpoint;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
 
 @ServerEndpoint("/pvbserver")
 public class PvBServer extends Server implements SeaBattleServer {
@@ -35,7 +36,11 @@ public class PvBServer extends Server implements SeaBattleServer {
         if (players.containsKey(session.getId())) {
             players.remove(session.getId());
         }
-        if (battles.containsKey(session.getId())) battles.remove(session.getId());
+        if (battles.containsKey(session.getId())) {
+            Battle battle = battles.get(session.getId());
+            battle.removeListener(this);
+            battles.remove(session.getId());
+        }
         if (fields.containsKey(session.getId())) {
             Field field = fields.get(session.getId());
             field.removeShotListener(this);
@@ -90,22 +95,13 @@ public class PvBServer extends Server implements SeaBattleServer {
     @Override
     public void shot(Field field, Coordinates hit, HashSet<Coordinates> misses) {
         if (fields.containsValue(field)) {
-            String sessionId = "";
-            Set<Map.Entry<String, Field>> entrySet = fields.entrySet();
-            for (Map.Entry<String, Field> entry : entrySet) {
-                if (entry.getValue().equals(field)) {
-                    sessionId = entry.getKey();
-                    break;
-                }
-            }
-
-            FieldChanges fieldChanges = new FieldChanges(FieldStatus.First, hit,
-                    misses.toArray(new Coordinates[misses.size()]));
+            String sessionId = getSessionId(fields, field);
 
             try {
-                sendMessage(new Gson().toJson(fieldChanges), sessionId);
+                sendMessage(new Gson().toJson(new FieldChanges(FieldStatus.First, hit,
+                        misses.toArray(new Coordinates[misses.size()]))), sessionId);
             } catch (IOException e) {
-                e.printStackTrace();
+                System.err.print(e.getMessage());
             }
         }
     }
@@ -125,14 +121,7 @@ public class PvBServer extends Server implements SeaBattleServer {
         }
         else return;
 
-        String sessionId = "";
-        Set<Map.Entry<String, Player>> entrySet = players.entrySet();
-        for (Map.Entry<String, Player> entry : entrySet) {
-            if (entry.getValue().equals(gamer)) {
-                sessionId = entry.getKey();
-                break;
-            }
-        }
+        String sessionId = getSessionId(players, (Player)gamer);
 
         try {
             sendMessage(new Gson().toJson(result), sessionId);
