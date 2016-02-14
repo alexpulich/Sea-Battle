@@ -1,10 +1,19 @@
-var
-    gulp = require('gulp'),
+var gulp = require('gulp'),
     jade = require('gulp-jade'),
     sass = require('gulp-sass'),
+    clean = require('gulp-clean'),
+    useref = require('gulp-useref'),
+    gulpif = require('gulp-if'),
+    uglify = require('gulp-uglify'),
+    minifyCss = require('gulp-minify-css'),
+    imagemin = require('gulp-imagemin'),
+    size = require('gulp-size'),
     browserSync = require('browser-sync').create(),
     reload = browserSync.reload;
 
+/*********************
+** Local Development**
+**********************/
 
 gulp.task('server', ['jade'], function() {
     browserSync.init({
@@ -44,6 +53,65 @@ gulp.task('watch', function() {
 
 gulp.task('default', ['server', 'watch']);
 
+
+/*********************
+**** Dist building ***
+**********************/
+
+gulp.task('clean', function() {
+    return gulp.src('dist')
+        .pipe(clean());
+});
+
+gulp.task('useref', function() {
+    return gulp.src('app/*.html')
+        .pipe(gulpif('*.js', uglify()))
+        .pipe(gulpif('*.css', minifyCss({
+            compatibility: 'ie8'
+        })))
+        .pipe(useref())
+        .pipe(gulp.dest('dist'));
+});
+
+gulp.task('images', function() {
+    return gulp.src('app/img/**/*')
+        .pipe(imagemin({
+            progressive: true,
+            interlaced: true
+        }))
+        .pipe(gulp.dest('dist/img'));
+})
+
+gulp.task('extras', function() {
+    return gulp.src([
+        'app/*.*',
+        '!app/*.html'
+        ]).pipe(gulp.dest('dist'));
+});
+
+gulp.task('dist', ['useref', 'images', 'extras'], function() {
+    return gulp.src('dist/**/*').pipe(size({title: 'build'}));
+})
+
+gulp.task('build', ['clean', 'jade'], function() {
+    gulp.start('dist');
+})
+
+gulp.task('server-dist', function() {
+    browserSync.init({
+        notify: false,
+        port: 9000,
+        server: {
+            baseDir: 'dist'
+        }
+    });
+});
+
+
+
+/*********************
+****** Functions *****
+**********************/
 
 function log(error) {
     console.log([

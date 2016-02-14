@@ -3,3 +3,4 @@ app/bower
 app/css
 **/*.html
 .idea
+dist
