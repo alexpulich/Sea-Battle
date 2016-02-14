@@ -9,7 +9,7 @@ public class Field {
     private ArrayList<Ship> ships = new ArrayList<>();
     private int numberOfDestroyedDecks = 0;
     private HashSet<Coordinates> shots = new HashSet<>();
-    private static HashSet<ShotListener> listeners = new HashSet<>();
+    private static HashSet<ShotInFieldListener> listeners = new HashSet<>();
 
     Field(ArrayList<Ship> ships) {
         this.ships = ships;
@@ -79,16 +79,16 @@ public class Field {
         }
     }
 
-    public void addShotListener(ShotListener listener) {
+    public void addShotListener(ShotInFieldListener listener) {
         listeners.add(listener);
     }
 
-    public boolean removeShotListener(ShotListener listener) {
+    public boolean removeShotListener(ShotInFieldListener listener) {
         return listeners.remove(listener);
     }
 
     private void fireListeners(Coordinates hit, HashSet<Coordinates> misses) {
-        listeners.forEach(listener -> listener.shot(this, hit, misses));
+        listeners.forEach(listener -> listener.shotInField(this, hit, misses));
     }
 
     @Override

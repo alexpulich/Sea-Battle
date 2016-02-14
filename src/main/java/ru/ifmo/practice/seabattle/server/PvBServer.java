@@ -1,10 +1,9 @@
 package ru.ifmo.practice.seabattle.server;
 
 import com.google.gson.Gson;
-import ru.ifmo.practice.seabattle.battle.Battle;
-import ru.ifmo.practice.seabattle.battle.Coordinates;
-import ru.ifmo.practice.seabattle.battle.Field;
-import ru.ifmo.practice.seabattle.battle.Gamer;
+import com.google.gson.JsonIOException;
+import com.google.gson.JsonSyntaxException;
+import ru.ifmo.practice.seabattle.battle.*;
 import ru.ifmo.practice.seabattle.battle.bot.Bot;
 
 import javax.websocket.OnClose;
@@ -17,12 +16,14 @@ import java.util.HashMap;
 import java.util.HashSet;
 
 @ServerEndpoint("/pvbserver")
-public class PvBServer extends Server implements SeaBattleServer {
+public class PvBServer extends Server implements BattleServer {
     private static HashMap<String, Session> sessions = new HashMap<>();
     private static HashMap<String, Player> players = new HashMap<>();
     private static HashMap<String, Battle> battles = new HashMap<>();
     private static HashMap<String, Command> commands = new HashMap<>();
     private static HashMap<String, Field> fields = new HashMap<>();
+    private static HashMap<String, Boolean> turns = new HashMap<>();
+    private static HashMap<String, Thread> threads = new HashMap<>();
 
     @OnOpen
     public void onOpen(Session session) throws IOException {
@@ -38,13 +39,21 @@ public class PvBServer extends Server implements SeaBattleServer {
         }
         if (battles.containsKey(session.getId())) {
             Battle battle = battles.get(session.getId());
-            battle.removeListener(this);
+            battle.removeBattleEndedListener(this);
             battles.remove(session.getId());
         }
         if (fields.containsKey(session.getId())) {
             Field field = fields.get(session.getId());
             field.removeShotListener(this);
             fields.remove(session.getId());
+        }
+        if (turns.containsKey(session.getId())) {
+            turns.remove(session.getId());
+        }
+        if (threads.containsKey(session.getId())) {
+            Thread thread = threads.get(session.getId());
+            thread.interrupt();
+            threads.remove(session.getId());
         }
         commands.remove(session.getId());
     }
@@ -69,11 +78,20 @@ public class PvBServer extends Server implements SeaBattleServer {
 
     @Override
     public void setField(String message, String sessionId) throws IOException {
-        Field field = setField(message, this);
-        if (field == null) sendMessage(new Gson().toJson(Notice.OK), sessionId);
+        Cell[][] fieldCells;
+
+        try {
+            fieldCells = new Gson().fromJson(message, Cell[][].class);
+        } catch (JsonSyntaxException | JsonIOException e) {
+            sendMessage(new Gson().toJson(Notice.Error), sessionId);
+            return;
+        }
+
+        Field field = setField(fieldCells, this);
+        if (field == null) sendMessage(new Gson().toJson(Notice.Error), sessionId);
         else {
             fields.put(sessionId, field);
-            sendMessage(new Gson().toJson(Notice.Error), sessionId);
+            sendMessage(new Gson().toJson(Notice.OK), sessionId);
         }
     }
 
@@ -81,12 +99,17 @@ public class PvBServer extends Server implements SeaBattleServer {
     public void startBattle(String sessionId) throws IOException {
         if (fields.containsKey(sessionId)) {
             Player player = new Player("Игрок", fields.get(sessionId));
-            players.put(sessionId, player);
             Battle battle = new Battle(player, new Bot("Бот"));
-            battles.put(sessionId, battle);
-            battle.start();
+            battle.addBattleEndedListener(this);
+            battle.addNextTurnListener(this);
 
-            sendMessage(new Gson().toJson(Notice.OK), sessionId);
+            players.put(sessionId, player);
+            battles.put(sessionId, battle);
+            turns.put(sessionId, false);
+
+            Thread thread = new Thread(battle);
+            threads.put(sessionId, thread);
+            thread.start();
         } else {
             sendMessage(new Gson().toJson(Notice.Error), sessionId);
         }
@@ -94,13 +117,23 @@ public class PvBServer extends Server implements SeaBattleServer {
 
     @Override
     public void shot(String message, String sessionId) throws IOException {
-        if (players.containsKey(sessionId)) {
-            sendMessage(new Gson().toJson(shot(message, players.get(sessionId))), sessionId);
-        }
+        if (players.containsKey(sessionId) && turns.containsKey(sessionId) && turns.get(sessionId)) {
+            turns.put(sessionId, false);
+            Coordinates coordinates;
+
+            try {
+                coordinates = new Gson().fromJson(message, Coordinates.class);
+            } catch (JsonSyntaxException | JsonIOException e) {
+                sendMessage(new Gson().toJson(Notice.Error), sessionId);
+                return;
+            }
+
+            sendMessage(new Gson().toJson(shot(coordinates, players.get(sessionId))), sessionId);
+        } else sendMessage(new Gson().toJson(Notice.Error), sessionId);
     }
 
     @Override
-    public void shot(Field field, Coordinates hit, HashSet<Coordinates> misses) {
+    public void shotInField(Field field, Coordinates hit, HashSet<Coordinates> misses) {
         if (fields.containsValue(field)) {
             String sessionId = getSessionId(fields, field);
 
@@ -134,6 +167,21 @@ public class PvBServer extends Server implements SeaBattleServer {
             sendMessage(new Gson().toJson(result), sessionId);
         } catch (IOException e) {
             e.printStackTrace();
+        }
+    }
+
+    @Override
+    public void nextTurn(Gamer gamer) {
+        if (players.containsValue(gamer)) {
+            String sessionId = getSessionId(players, (Player)gamer);
+
+            turns.put(sessionId, true);
+
+            try {
+                sendMessage(new Gson().toJson(Notice.YourTurn), sessionId);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
     }
 }

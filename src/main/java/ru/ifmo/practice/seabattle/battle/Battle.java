@@ -5,8 +5,9 @@ import ru.ifmo.practice.seabattle.exceptions.IllegalNumberOfShipException;
 
 import java.util.HashSet;
 
-public class Battle {
-    private static HashSet<BattleEndedListener> listeners = new HashSet<>();
+public class Battle implements Runnable {
+    private static HashSet<BattleEndedListener> battleEndedListeners = new HashSet<>();
+    private static HashSet<NextTurnListener> nextTurnListeners = new HashSet<>();
     private Gamer firstGamer;
     private Gamer secondGamer;
     private Gamer winner;
@@ -35,6 +36,7 @@ public class Battle {
         HashSet<Coordinates> shotResult = null;
 
         do {
+            fireNextTurnListeners(attacker);
             Coordinates shot = attacker.nextRound(shotResult);
             shotResult = defender.getField().shot(shot);
 
@@ -48,18 +50,35 @@ public class Battle {
             }
         } while (winner == null);
 
-        fireListeners();
+        fireBattleEndedListeners();
     }
 
-    public void addListener(BattleEndedListener listener) {
-        listeners.add(listener);
+    public void addBattleEndedListener(BattleEndedListener listener) {
+        battleEndedListeners.add(listener);
     }
 
-    public boolean removeListener(BattleEndedListener listener) {
-        return listeners.remove(listener);
+    public void addNextTurnListener(NextTurnListener listener) {
+        nextTurnListeners.add(listener);
     }
 
-    private void fireListeners() {
-        listeners.forEach((listener) -> listener.battleEnd(winner, looser));
+    public boolean removeBattleEndedListener(BattleEndedListener listener) {
+        return battleEndedListeners.remove(listener);
+    }
+
+    public boolean removeNextTurnListener(NextTurnListener listener) {
+        return nextTurnListeners.remove(listener);
+    }
+
+    private void fireBattleEndedListeners() {
+        battleEndedListeners.forEach((listener) -> listener.battleEnd(winner, looser));
+    }
+
+    private void fireNextTurnListeners(Gamer gamer) {
+        nextTurnListeners.forEach((listener) -> listener.nextTurn(gamer));
+    }
+
+    @Override
+    public void run() {
+        this.start();
     }
 }

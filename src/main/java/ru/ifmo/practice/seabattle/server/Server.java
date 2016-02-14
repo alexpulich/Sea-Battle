@@ -1,6 +1,7 @@
 package ru.ifmo.practice.seabattle.server;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonSyntaxException;
 import ru.ifmo.practice.seabattle.battle.*;
 import ru.ifmo.practice.seabattle.exceptions.IllegalNumberOfShipException;
 
@@ -14,11 +15,18 @@ import java.util.Set;
 
 class Server extends HttpServlet {
     protected Command parseMessage(Command lastCommand, String message,
-                                  SeaBattleServer server, String sessionID) throws IOException {
+                                   BattleServer server, String sessionID) throws IOException {
         Command result = null;
 
         if (lastCommand == null) {
-            Command command = new Gson().fromJson(message, Command.class);
+            Command command = null;
+
+            try {
+                command = new Gson().fromJson(message, Command.class);
+            } catch (JsonSyntaxException e) {
+                server.sendMessage(new Gson().toJson(Notice.Error), sessionID);
+            }
+
             if (command != null) {
                 switch (command) {
                     case PlaceShipsRandom:
@@ -29,11 +37,18 @@ class Server extends HttpServlet {
                         server.startBattle(sessionID);
                         break;
 
-                    default:
+                    case SetField:
+                    case Shot:
                         result = command;
                         server.sendMessage(new Gson().toJson(Notice.OK), sessionID);
                         break;
+
+                    default:
+                        server.sendMessage(new Gson().toJson(Notice.Error), sessionID);
+                        break;
                 }
+            } else {
+                server.sendMessage(new Gson().toJson(Notice.Error), sessionID);
             }
         } else {
             switch (lastCommand) {
@@ -43,6 +58,10 @@ class Server extends HttpServlet {
 
                 case Shot:
                     server.shot(message, sessionID);
+                    break;
+
+                default:
+                    server.sendMessage(new Gson().toJson(Notice.Error), sessionID);
                     break;
             }
         }
@@ -54,7 +73,7 @@ class Server extends HttpServlet {
         session.getBasicRemote().sendText(message);
     }
 
-    protected Field placeShipsRandom(ShotListener listener) {
+    protected Field placeShipsRandom(ShotInFieldListener listener) {
         FieldBuilder builder = new FieldBuilder();
         builder.placeShipsRandom();
         Field field = builder.create();
@@ -62,9 +81,7 @@ class Server extends HttpServlet {
         return field;
     }
 
-    protected Field setField(String message, ShotListener listener) throws IOException {
-        Cell[][] fieldCells = new Gson().fromJson(message, Cell[][].class);
-
+    protected Field setField(Cell[][] fieldCells, ShotInFieldListener listener) throws IOException {
         FieldBuilder fieldBuilder = new FieldBuilder();
         Field field;
 
@@ -79,8 +96,7 @@ class Server extends HttpServlet {
         return field;
     }
 
-    protected FieldChanges shot(String message, Player player) {
-        Coordinates shot = new Gson().fromJson(message, Coordinates.class);
+    protected FieldChanges shot(Coordinates shot, Player player) {
         player.setShot(shot);
 
         while (player.getShotResult() == null) {

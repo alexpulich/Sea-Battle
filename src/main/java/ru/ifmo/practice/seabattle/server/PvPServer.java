@@ -1,10 +1,9 @@
 package ru.ifmo.practice.seabattle.server;
 
 import com.google.gson.Gson;
-import ru.ifmo.practice.seabattle.battle.Battle;
-import ru.ifmo.practice.seabattle.battle.Coordinates;
-import ru.ifmo.practice.seabattle.battle.Field;
-import ru.ifmo.practice.seabattle.battle.Gamer;
+import com.google.gson.JsonIOException;
+import com.google.gson.JsonSyntaxException;
+import ru.ifmo.practice.seabattle.battle.*;
 
 import javax.websocket.OnClose;
 import javax.websocket.OnMessage;
@@ -15,7 +14,7 @@ import java.io.IOException;
 import java.util.*;
 
 @ServerEndpoint("/pvpserver")
-public class PvPServer extends Server implements SeaBattleServer {
+public class PvPServer extends Server implements BattleServer {
     private static ArrayList<Room> freeRooms = new ArrayList<>();
     private static ArrayList<Room> fullRooms = new ArrayList<>();
     private static HashMap<String, Session> sessions = new HashMap<>();
@@ -24,6 +23,8 @@ public class PvPServer extends Server implements SeaBattleServer {
     private static HashMap<String, Command> commands = new HashMap<>();
     private static HashMap<String, Field> fields = new HashMap<>();
     private static HashMap<String, Boolean> readyToBattle = new HashMap<>();
+    private static HashMap<String, Boolean> turns = new HashMap<>();
+    private static HashMap<String, Thread> threads = new HashMap<>();
 
     @OnOpen
     public void onOpen(Session session) throws IOException {
@@ -48,23 +49,7 @@ public class PvPServer extends Server implements SeaBattleServer {
 
     @OnClose
     public void onClose(Session session) throws IOException {
-        sessions.remove(session.getId());
-        if (players.containsKey(session.getId())) {
-            players.remove(session.getId());
-        }
-        if (battles.containsKey(session.getId())) {
-            Battle battle = battles.get(session.getId());
-            battle.removeListener(this);
-            battles.remove(session.getId());
-        }
-        if (fields.containsKey(session.getId())) {
-            Field field = fields.get(session.getId());
-            field.removeShotListener(this);
-            fields.remove(session.getId());
-        }
-        commands.remove(session.getId());
-        if (readyToBattle.containsKey(session.getId()))
-            readyToBattle.remove(session.getId());
+        onClose(session.getId());
 
         boolean isContains = false;
         Iterator<Room> iterator = freeRooms.iterator();
@@ -78,11 +63,47 @@ public class PvPServer extends Server implements SeaBattleServer {
 
         iterator = fullRooms.iterator();
         while (!isContains && iterator.hasNext()) {
-            if (iterator.next().contains(session.getId())) {
+            Room room = iterator.next();
+            if (room.contains(session.getId())) {
+                String opponentId = session.getId().equals(room.getPlayer1()) ?
+                        room.getPlayer2() : room.getPlayer1();
+
+                Session opponent = sessions.get(opponentId);
+                onClose(opponentId);
+                opponent.close();
+
                 iterator.remove();
                 isContains = true;
             }
         }
+    }
+
+    private void onClose(String sessionId) {
+        sessions.remove(sessionId);
+        if (players.containsKey(sessionId)) {
+            players.remove(sessionId);
+        }
+        if (battles.containsKey(sessionId)) {
+            Battle battle = battles.get(sessionId);
+            battle.removeBattleEndedListener(this);
+            battles.remove(sessionId);
+        }
+        if (fields.containsKey(sessionId)) {
+            Field field = fields.get(sessionId);
+            field.removeShotListener(this);
+            fields.remove(sessionId);
+        }
+        if (turns.containsKey(sessionId)) {
+            turns.remove(sessionId);
+        }
+        if (threads.containsKey(sessionId)) {
+            Thread thread = threads.get(sessionId);
+            thread.interrupt();
+            threads.remove(sessionId);
+        }
+        commands.remove(sessionId);
+        if (readyToBattle.containsKey(sessionId))
+            readyToBattle.remove(sessionId);
     }
 
     @OnMessage
@@ -97,13 +118,24 @@ public class PvPServer extends Server implements SeaBattleServer {
     }
 
     @Override
-    public void placeShipsRandom(String sessionID) {
-        fields.put(sessionID, placeShipsRandom(this));
+    public void placeShipsRandom(String sessionID) throws IOException {
+        Field field = placeShipsRandom(this);
+        fields.put(sessionID, field);
+        sendMessage(new Gson().toJson(field.getCurrentConditions()), sessionID);
     }
 
     @Override
     public void setField(String message, String sessionId) throws IOException {
-        Field field = setField(message, this);
+        Cell[][] fieldCells;
+
+        try {
+            fieldCells = new Gson().fromJson(message, Cell[][].class);
+        } catch (JsonSyntaxException | JsonIOException e) {
+            sendMessage(new Gson().toJson(Notice.Error), sessionId);
+            return;
+        }
+
+        Field field = setField(fieldCells, this);
         if (field == null) sendMessage(new Gson().toJson(Notice.OK), sessionId);
         else {
             fields.put(sessionId, field);
@@ -133,34 +165,46 @@ public class PvPServer extends Server implements SeaBattleServer {
             opponentId = room.getPlayer1();
         }
 
-        readyToBattle.replace(sessionId, false, true);
+        readyToBattle.put(sessionId, true);
         Player player = new Player(nickName, fields.get(sessionId));
         players.put(sessionId, player);
+        turns.put(sessionId, false);
 
         if (readyToBattle.get(opponentId)) {
             Battle battle;
 
-            if (room.getPlayer1().equals(sessionId)) {
+            if (room.getPlayer1().equals(sessionId))
                 battle = new Battle(player, players.get(opponentId));
+            else battle = new Battle(players.get(opponentId), player);
 
-                sendMessage(new Gson().toJson(Notice.FirstTurn), sessionId);
-                sendMessage(new Gson().toJson(Notice.SecondTurn), opponentId);
-            } else {
-                battle = new Battle(players.get(opponentId), player);
+            battle.addBattleEndedListener(this);
+            battle.addNextTurnListener(this);
 
-                sendMessage(new Gson().toJson(Notice.FirstTurn), opponentId);
-                sendMessage(new Gson().toJson(Notice.SecondTurn), sessionId);
-            }
-
-            battle.addListener(this);
-            battle.start();
+            Thread thread = new Thread(battle);
+            threads.put(sessionId, thread);
+            thread.start();
+        } else {
+            sendMessage(new Gson().toJson(Notice.OK), sessionId);
         }
     }
 
     @Override
     public void shot(String message, String sessionId) throws IOException {
-        if (players.containsKey(sessionId)) {
-            sendMessage(new Gson().toJson(shot(message, players.get(sessionId))), sessionId);
+        if (players.containsKey(sessionId)
+                && turns.containsKey(sessionId) && turns.get(sessionId)) {
+            turns.put(sessionId, false);
+            Coordinates coordinates;
+
+            try {
+                coordinates = new Gson().fromJson(message, Coordinates.class);
+            } catch (JsonSyntaxException | JsonIOException e) {
+                sendMessage(new Gson().toJson(Notice.Error), sessionId);
+                return;
+            }
+
+            sendMessage(new Gson().toJson(shot(coordinates, players.get(sessionId))), sessionId);
+        } else {
+            sendMessage(new Gson().toJson(Notice.Error), sessionId);
         }
     }
 
@@ -191,7 +235,7 @@ public class PvPServer extends Server implements SeaBattleServer {
     }
 
     @Override
-    public void shot(Field field, Coordinates hit, HashSet<Coordinates> misses) {
+    public void shotInField(Field field, Coordinates hit, HashSet<Coordinates> misses) {
         if (fields.containsValue(field)) {
             String sessionId = getSessionId(fields, field);
 
@@ -200,6 +244,21 @@ public class PvPServer extends Server implements SeaBattleServer {
                         misses.toArray(new Coordinates[misses.size()]))), sessionId);
             } catch (IOException e) {
                 e.printStackTrace();
+            }
+        }
+    }
+
+    @Override
+    public void nextTurn(Gamer gamer) {
+        if (players.containsValue(gamer)) {
+            String sessionId = getSessionId(players, (Player)gamer);
+
+            turns.put(sessionId, true);
+
+            try {
+                sendMessage(new Gson().toJson(Notice.YourTurn), sessionId);
+            } catch (IOException e) {
+                System.err.print(e.getMessage());
             }
         }
     }

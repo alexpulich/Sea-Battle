@@ -7,7 +7,7 @@ import ru.ifmo.practice.seabattle.battle.*;
 
 import java.util.HashSet;
 
-public class JsonTest implements ShotListener {
+public class JsonTest implements ShotInFieldListener {
     public static void main(String[] args) {
         GsonBuilder gsonBuilder = new GsonBuilder();
         Gson gson = gsonBuilder.setPrettyPrinting().create();
@@ -89,7 +89,7 @@ public class JsonTest implements ShotListener {
     }
 
     @Override
-    public void shot(Field field, Coordinates hit, HashSet<Coordinates> misses) {
+    public void shotInField(Field field, Coordinates hit, HashSet<Coordinates> misses) {
         GsonBuilder gsonBuilder = new GsonBuilder();
         Gson gson = gsonBuilder.setPrettyPrinting().create();
 
