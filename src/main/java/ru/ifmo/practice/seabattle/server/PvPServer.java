@@ -41,9 +41,8 @@ public class PvPServer extends Server implements BattleServer {
             room.add(session.getId());
             fullRooms.add(room);
 
-            String message = new Gson().toJson(Notice.OpponentFound);
-            sendMessage(message, room.getPlayer1());
-            sendMessage(message, room.getPlayer2());
+            sendMessage(new Message<>(Notice.OpponentFound), room.getPlayer1());
+            sendMessage(new Message<>(Notice.OpponentFound), room.getPlayer2());
         }
     }
 
@@ -113,15 +112,15 @@ public class PvPServer extends Server implements BattleServer {
     }
 
     @Override
-    public void sendMessage(String message, String sessionId) throws IOException {
-        sendMessage(message, sessions.get(sessionId));
+    public void sendMessage(Message message, String sessionId) throws IOException {
+        sendMessage(new Gson().toJson(message), sessions.get(sessionId));
     }
 
     @Override
     public void placeShipsRandom(String sessionID) throws IOException {
         Field field = placeShipsRandom(this);
         fields.put(sessionID, field);
-        sendMessage(new Gson().toJson(field.getCurrentConditions()), sessionID);
+        sendMessage(new Message<>(field.getCurrentConditions()), sessionID);
     }
 
     @Override
@@ -131,15 +130,15 @@ public class PvPServer extends Server implements BattleServer {
         try {
             fieldCells = new Gson().fromJson(message, Cell[][].class);
         } catch (JsonSyntaxException | JsonIOException e) {
-            sendMessage(new Gson().toJson(Notice.Error), sessionId);
+            sendMessage(new Message<>(Notice.Error), sessionId);
             return;
         }
 
         Field field = setField(fieldCells, this);
-        if (field == null) sendMessage(new Gson().toJson(Notice.OK), sessionId);
+        if (field == null) sendMessage(new Message<>(Notice.OK), sessionId);
         else {
             fields.put(sessionId, field);
-            sendMessage(new Gson().toJson(Notice.Error), sessionId);
+            sendMessage(new Message<>(Notice.Error), sessionId);
         }
     }
 
@@ -183,8 +182,6 @@ public class PvPServer extends Server implements BattleServer {
             Thread thread = new Thread(battle);
             threads.put(sessionId, thread);
             thread.start();
-        } else {
-            sendMessage(new Gson().toJson(Notice.OK), sessionId);
         }
     }
 
@@ -198,13 +195,13 @@ public class PvPServer extends Server implements BattleServer {
             try {
                 coordinates = new Gson().fromJson(message, Coordinates.class);
             } catch (JsonSyntaxException | JsonIOException e) {
-                sendMessage(new Gson().toJson(Notice.Error), sessionId);
+                sendMessage(new Message<>(Notice.Error), sessionId);
                 return;
             }
 
-            sendMessage(new Gson().toJson(shot(coordinates, players.get(sessionId))), sessionId);
+            sendMessage(new Message<>(shot(coordinates, players.get(sessionId))), sessionId);
         } else {
-            sendMessage(new Gson().toJson(Notice.Error), sessionId);
+            sendMessage(new Message<>(Notice.Error), sessionId);
         }
     }
 
@@ -227,8 +224,8 @@ public class PvPServer extends Server implements BattleServer {
         else loserId = room.getPlayer1();
 
         try {
-            sendMessage(new Gson().toJson(BattleResult.Win), winnerId);
-            sendMessage(new Gson().toJson(BattleResult.Lose), loserId);
+            sendMessage(new Message<>(BattleResult.Win), winnerId);
+            sendMessage(new Message<>(BattleResult.Lose), loserId);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -240,8 +237,8 @@ public class PvPServer extends Server implements BattleServer {
             String sessionId = getSessionId(fields, field);
 
             try {
-                sendMessage(new Gson().toJson(new FieldChanges(FieldStatus.First, hit,
-                        misses.toArray(new Coordinates[misses.size()]))), sessionId);
+                sendMessage(new Message<>(new FieldChanges(FieldStatus.First, hit,
+                        misses)), sessionId);
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -256,7 +253,7 @@ public class PvPServer extends Server implements BattleServer {
             turns.put(sessionId, true);
 
             try {
-                sendMessage(new Gson().toJson(Notice.YourTurn), sessionId);
+                sendMessage(new Message<>(Notice.YourTurn), sessionId);
             } catch (IOException e) {
                 System.err.print(e.getMessage());
             }

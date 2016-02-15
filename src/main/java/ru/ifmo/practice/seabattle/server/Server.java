@@ -24,7 +24,7 @@ class Server extends HttpServlet {
             try {
                 command = new Gson().fromJson(message, Command.class);
             } catch (JsonSyntaxException e) {
-                server.sendMessage(new Gson().toJson(Notice.Error), sessionID);
+                server.sendMessage(new Message<>(Notice.Error), sessionID);
             }
 
             if (command != null) {
@@ -40,15 +40,15 @@ class Server extends HttpServlet {
                     case SetField:
                     case Shot:
                         result = command;
-                        server.sendMessage(new Gson().toJson(Notice.OK), sessionID);
+                        server.sendMessage(new Message<>(Notice.OK), sessionID);
                         break;
 
                     default:
-                        server.sendMessage(new Gson().toJson(Notice.Error), sessionID);
+                        server.sendMessage(new Message<>(Notice.Error), sessionID);
                         break;
                 }
             } else {
-                server.sendMessage(new Gson().toJson(Notice.Error), sessionID);
+                server.sendMessage(new Message<>(Notice.Error), sessionID);
             }
         } else {
             switch (lastCommand) {
@@ -61,7 +61,7 @@ class Server extends HttpServlet {
                     break;
 
                 default:
-                    server.sendMessage(new Gson().toJson(Notice.Error), sessionID);
+                    server.sendMessage(new Message<>(Notice.Error), sessionID);
                     break;
             }
         }
@@ -112,19 +112,18 @@ class Server extends HttpServlet {
         player.setShotResult(null);
 
         Coordinates hit;
-        Coordinates[] misses;
+        HashSet<Coordinates> misses = new HashSet<>();
 
         if (shotResult.isEmpty()) {
             hit = null;
-            misses = new Coordinates[1];
-            misses[0] = shot;
+            misses.add(shot);
         } else {
             hit = shot;
             shotResult.remove(shot);
             if (shotResult.isEmpty()) {
                 misses = null;
             } else {
-                misses = shotResult.toArray(new Coordinates[shotResult.size()]);
+                misses = shotResult;
             }
         }
 

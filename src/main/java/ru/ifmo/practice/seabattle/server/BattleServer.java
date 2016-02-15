@@ -11,5 +11,5 @@ interface BattleServer extends ShotInFieldListener, BattleEndedListener, NextTur
     void setField(String message, String sessionId) throws IOException;
     void startBattle(String sessionId) throws IOException;
     void shot(String message, String sessionId) throws IOException;
-    void sendMessage(String message, String sessionId) throws IOException;
+    void sendMessage(Message message, String sessionId) throws IOException;
 }
