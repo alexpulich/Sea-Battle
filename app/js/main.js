@@ -107,64 +107,107 @@ var loader = (function() {
 
 
 var gamebot = (function() {
-    var socket;
+    var _BOTMODE = "pvbserver",
+        _ip = "46.32.76.190",
+        _port = "8000",
+        _msg = "",
+        _socket = null;
 
     function _setup() {
-        $('#bot').on('click', _botgame);
+        $('#bot').on('click', function() {
+            _init(_BOTMODE)
+        });
         $('#random').on('click', _random);
         $('#confirm').on('click', _confirm);
     }
 
     function _random() {
         var msg = '"PlaceShipsRandom"';
-        socket.send(msg);
-        console.log("sending: " + msg);
-        var field;
-        socket.onmessage = function(event) {
-            console.log("MSG: " + event.data);
-            var rows = $($('.game-field-table')[0]).find($('tr'));
-            field = JSON.parse(event.data);
+        _send(msg);
+        // var field;
+        // _socket.onmessage = function(event) {
+        //     var rows = $($('.game-field-table')[0]).find($('tr'));
+        //     field = JSON.parse(event.data);
+        //     for (var i = 0; i < 10; i++ ) {
+        //         for (var j = 0; j < 10; j++) {
+        //             var cell = rows.eq(i).children().eq(j).children('.game-field-inner');
+        //             if (field[i][j] == 'Void') {
+        //                 cell.removeClass('busy');
+        //                 cell.addClass('empty');
+                        
+        //             } else if (field[i][j] == 'Ship') {
+        //                 cell.removeClass('empty');
+        //                 cell.addClass('busy');
+        //             }
+        //         }
+        //     }
+        // }
+    }
+
+    function _placeShips(data) {
+        var rows = $($('.game-field-table')[0]).find($('tr')),
+            field = data;
+
             for (var i = 0; i < 10; i++ ) {
                 for (var j = 0; j < 10; j++) {
                     var cell = rows.eq(i).children().eq(j).children('.game-field-inner');
                     if (field[i][j] == 'Void') {
                         cell.removeClass('busy');
                         cell.addClass('empty');
-                        
                     } else if (field[i][j] == 'Ship') {
                         cell.removeClass('empty');
                         cell.addClass('busy');
                     }
                 }
             }
-        }
+
     }
 
     function _confirm() {
         var msg = '"StartBattle"';
-        socket.send(msg);
-        console.log("sending: " + msg);
+        _send(msg);
     }   
 
-    function _botgame() {
-        socket = new WebSocket("ws://46.32.76.190:8000/pvbserver");
+    function _init(mode) {
+        _socket = new WebSocket("ws://" + _ip + ":" + _port + "/" + mode);
 
-        socket.onopen = function() {
-            console.log("CONNECTION: Connected successfuly");
+        _socket.onopen = function() {
+            console.log("Connected successfuly");
         }
-        socket.onerror = function(error) {
+        _socket.onerror = function(error) {
             console.log("ERROR: " + error.data);
         } 
-        socket.onmessage = function(event) {
-            console.log("MESSAGE: " + event.data);
+        _socket.onmessage = function(event) {
+            msg = JSON.parse(event.data);
+            console.log("Got a message with type: " + msg.type);
+            switch (msg.type) {
+                case "Cell[][]":
+                    console.log("I'm a cell handler");
+                    _placeShips(msg.data);
+                    break;
+                case "Notice":
+                    console.log("I'm a notice handler");
+                    console.log(msg.data);
+                default:
+                    break;
+            }
         }
-        socket.onclose = function(event) {
+        _socket.onclose = function(event) {
             if (event.wasClean)
-                console.log("CONNECTION: closed clearly");
+                console.log("Connection closed clearly");
             else 
                 console.log("СONNECTION: was broken");
             console.log("Code: " + event.code + " reason: " + event.reason);
         }
+    }
+
+    function _send(msg) {
+        if (!_socket) {
+            console.log("Socket isn't set (" + _socket + ")");
+            return;
+        } 
+        console.log("Sending: " + msg);
+        _socket.send(msg);
     }
 
     return {
