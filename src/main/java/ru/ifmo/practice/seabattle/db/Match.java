@@ -1,25 +1,87 @@
 package ru.ifmo.practice.seabattle.db;
 
+import org.hibernate.annotations.GenericGenerator;
+
+import javax.persistence.*;
+
+@Entity
+@Table(name = "Game")
 public class Match {
-    private User user1;
-    private User user2;
-    private MatchWinner winner;
 
-    public User getUser1() {
-        return user1;
+    private int id;
+    private int loser_id;
+    private int winner_id;
+    private int winner_eff;
+    private int loser_eff;
+    private String loser_nickname;
+    private String winner_nickname;
+
+
+    @Id
+    @GeneratedValue(generator = "increment")
+    @GenericGenerator(name = "increment", strategy = "increment")
+    public int getId() {
+        return id;
     }
 
-    public User getUser2() {
-        return user2;
+    @Column(name = "loser_id", nullable = false)
+    public int getLoser_id() {
+        return loser_id;
     }
 
-    public MatchWinner getWinner() {
-        return winner;
+    @Column(name = "winner_id", nullable = false)
+    public int getWinner_id() {
+        return winner_id;
     }
 
-    public Match(User user1, User user2, MatchWinner winner) {
-        this.user1 = user1;
-        this.user2 = user2;
-        this.winner = winner;
+    @Column(name = "winner_eff", nullable = false)
+    public int getWinner_eff() {
+        return winner_eff;
+    }
+
+    @Column(name = "loser_eff", nullable = false)
+    public int getLoser_eff() {
+        return loser_eff;
+    }
+
+    @Column(name = "loser_nickname", length = 20, nullable = false)
+    public String getLoser_nickname() {
+        return loser_nickname;
+    }
+
+    @Column(name = "winner_nickname", length = 20, nullable = false)
+    public String getWinner_nickname() {
+        return winner_nickname;
+    }
+
+    public void setLoser_eff(int loser_eff) {
+        this.loser_eff = loser_eff;
+    }
+
+    public void setWinner_id(int winner_id) {
+        this.winner_id = winner_id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    public void setLoser_id(int loser_id) {
+        this.loser_id = loser_id;
+    }
+
+    public void setWinner_eff(int winner_eff) {
+        this.winner_eff = winner_eff;
+    }
+
+    public void setLoser_nickname(String loser_nickname) {
+        this.loser_nickname = loser_nickname;
+    }
+
+    public void setWinner_nickname(String winner_nickname) {
+        this.winner_nickname = winner_nickname;
+    }
+
+    public Match() {
     }
 }
