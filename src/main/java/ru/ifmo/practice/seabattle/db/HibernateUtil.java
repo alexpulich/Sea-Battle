@@ -6,28 +6,38 @@ import org.hibernate.boot.registry.StandardServiceRegistry;
 import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
 
 public class HibernateUtil {
-    private static SessionFactory sessionFactory;
+    private SessionFactory sessionFactory = null;
 
-    //Вызывать только 1 раз!
+    private static class HibernateUtilHolder {
+        private static HibernateUtil instance = new HibernateUtil();
+    }
+
+    public static HibernateUtil getInstance() {
+        return HibernateUtilHolder.instance;
+    }
+
+    private HibernateUtil() {
+        setUp();
+    }
+
     //Поднимает фабрику, которая создает сессии для доступа к БД
-    protected void setUp() throws Exception {
+    private void setUp() {
         final StandardServiceRegistry registry = new StandardServiceRegistryBuilder()
                 .configure() // configures settings from hibernate.cfg.xml
                 .build();
         try {
             sessionFactory = new MetadataSources(registry).buildMetadata().buildSessionFactory();
         } catch (Exception e) {
-            System.out.println("Упал сетап");
-            System.out.println(e.toString());
+            e.printStackTrace();
             StandardServiceRegistryBuilder.destroy(registry);
         }
     }
 
-    public static SessionFactory getSessionFactory() {
+    public SessionFactory getSessionFactory() {
         return sessionFactory;
     }
 
-    public static void shutdown() {
+    public void shutdown() {
         getSessionFactory().close();
     }
 }

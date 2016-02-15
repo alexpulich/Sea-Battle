@@ -18,7 +18,7 @@ public class UserDAOImpl implements UserDAO {
     }
 
     private <T> T transaction(final Command<T> command) {
-        final Session session = HibernateUtil.getSessionFactory().openSession();
+        final Session session = HibernateUtil.getInstance().getSessionFactory().openSession();
         final Transaction tx = session.beginTransaction();
         try {
             return command.process(session);
@@ -30,7 +30,7 @@ public class UserDAOImpl implements UserDAO {
 
     @Override
     public void addUser(User user) throws SQLException {
-        transaction((Session session) -> {
+        transaction(session -> {
             session.save(user);
             return null;
         });
@@ -53,7 +53,7 @@ public class UserDAOImpl implements UserDAO {
     //Для работы Delete необходимо сначала получить User из таблицы через get, и передавать его как параметр для удаления
     @Override
     public void deleteUser(User user) throws SQLException {
-        transaction((Session session) -> {
+        transaction(session -> {
             session.delete(user);
             return null;
         });
@@ -61,7 +61,7 @@ public class UserDAOImpl implements UserDAO {
 
     @Override
     public boolean isNicknameUnique(String nickname) throws SQLException {
-        return transaction((Session session) -> {
+        return transaction(session -> {
             Query query = session.
                     createQuery("select 1 from User t where t.user_nickname = :key");
             query.setString("key", nickname);
@@ -71,7 +71,7 @@ public class UserDAOImpl implements UserDAO {
 
     @Override
     public boolean isEmailUnique(String email) throws SQLException {
-        return transaction((Session session) -> {
+        return transaction(session -> {
             Query query = session.
                     createQuery("select 1 from User t where t.email = :key");
             query.setString("key", email);
@@ -81,25 +81,20 @@ public class UserDAOImpl implements UserDAO {
 
     @Override
     public List<Match> getWins(int user_id) throws SQLException {
-        return transaction((Session session) -> {
-            return (List<Match>) session.createQuery("from Match where winner_id=:winnerId")
-                    .setLong("winnerId", user_id).list();
-        });
+        return transaction(session -> (List<Match>) session.createQuery("from Match where winner_id=:winnerId")
+                .setLong("winnerId", user_id).list());
     }
 
     @Override
     public List<Match> getLoses(int user_id) throws SQLException {
-        return transaction((Session session) -> {
-            return (List<Match>) session.createQuery("from Match where loser_id=:loserId")
-                    .setLong("loserId", user_id).list();
-        });
+        return transaction(session -> (List<Match>) session.createQuery("from Match where loser_id=:loserId")
+                .setLong("loserId", user_id).list());
     }
 
     @Override
     public List<Match> getAllMatches(int user_id) throws SQLException {
-        return transaction((Session session) -> {
-            return (List<Match>) session.createQuery("from Match where loser_id=:userId or winner_id=:userId")
-                    .setLong("userId", user_id).list();
-        });
+        return transaction(session ->
+                (List<Match>) session.createQuery("from Match where loser_id=:userId or winner_id=:userId")
+                        .setLong("userId", user_id).list());
     }
 }

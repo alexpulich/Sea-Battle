@@ -15,7 +15,7 @@ public class MatchDAOImpl implements MatchDAO {
     }
 
     private <T> T transaction(final Command<T> command) {
-        final Session session = HibernateUtil.getSessionFactory().openSession();
+        final Session session = HibernateUtil.getInstance().getSessionFactory().openSession();
         final Transaction tx = session.beginTransaction();
         try {
             return command.process(session);
@@ -27,7 +27,7 @@ public class MatchDAOImpl implements MatchDAO {
 
     @Override
     public void addMatch(Match match) throws SQLException {
-        transaction((Session session) -> {
+        transaction(session -> {
             session.save(match);
             return null;
         });
@@ -36,7 +36,7 @@ public class MatchDAOImpl implements MatchDAO {
     //Для работы Delete необходимо сначала получить Match из таблицы через get, и передавать его как параметр для удаления
     @Override
     public void deleteMatch(Match match) throws SQLException {
-        transaction((Session session) -> {
+        transaction(session -> {
             session.delete(match);
             return null;
         });
@@ -44,6 +44,6 @@ public class MatchDAOImpl implements MatchDAO {
 
     @Override
     public Match getMatchById(int id) throws SQLException {
-        return transaction((Session session) -> (Match) session.load(Match.class, id));
+        return transaction(session -> session.load(Match.class, id));
     }
 }
