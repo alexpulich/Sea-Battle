@@ -99,7 +99,7 @@ public class UserDAOImpl implements UserDAO {
     }
 
     @Override
-    public User login(String email, String password) {
+    public User login(String email, String password) throws SQLException{
         return transaction(session -> (User) session.createQuery("from User where email=:email and password=:password")
                 .setString("email", email).setString("password", password));
     }
