@@ -75,7 +75,8 @@ var dragAndDrop = (function() {
 
 
     return {
-        init: _setup
+        init: _setup,
+        getCoords : _getCoords
     }
 })();
 
@@ -111,12 +112,17 @@ var gamebot = (function() {
         _ip = "46.32.76.190",
         _port = "8000",
         _msg = "",
-        _socket = null;
+        _socket = null,
+        _lastShot = null;
 
-    function _setup() {
+    function _setupListeners() {
         $('#bot').on('click', function() {
-            _init(_BOTMODE)
+            _setupSocket(_BOTMODE);
         });
+        $(window).on('unload', function() {
+            if (_socket)
+                _socket.close();
+        })
         $('#random').on('click', _random);
         $('#confirm').on('click', _confirm);
     }
@@ -124,24 +130,6 @@ var gamebot = (function() {
     function _random() {
         var msg = '"PlaceShipsRandom"';
         _send(msg);
-        // var field;
-        // _socket.onmessage = function(event) {
-        //     var rows = $($('.game-field-table')[0]).find($('tr'));
-        //     field = JSON.parse(event.data);
-        //     for (var i = 0; i < 10; i++ ) {
-        //         for (var j = 0; j < 10; j++) {
-        //             var cell = rows.eq(i).children().eq(j).children('.game-field-inner');
-        //             if (field[i][j] == 'Void') {
-        //                 cell.removeClass('busy');
-        //                 cell.addClass('empty');
-                        
-        //             } else if (field[i][j] == 'Ship') {
-        //                 cell.removeClass('empty');
-        //                 cell.addClass('busy');
-        //             }
-        //         }
-        //     }
-        // }
     }
 
     function _placeShips(data) {
@@ -160,7 +148,6 @@ var gamebot = (function() {
                     }
                 }
             }
-
     }
 
     function _confirm() {
@@ -168,7 +155,79 @@ var gamebot = (function() {
         _send(msg);
     }   
 
-    function _init(mode) {
+    function _setupShotListener() {
+        $('.game-field-cell').on('click', function() {
+            var xVal = $(this).index();
+            var yVal = $(this).closest('.game-field-row').index();
+            _lastShot = {x: xVal, y: yVal};
+            _send("Shot");
+            // setTimeout(function() {_send(JSON.stringify(_lastShot));}, 3000);
+        });
+    }
+
+    function _shot(cell) {
+        _send(JSON.stringify(_lastShot));
+    }
+
+    function _battleResultHandler(result) {
+        if (result === "Win")
+            alert("You won!");
+        else if (result === "Lose") 
+            alert("You lost");
+        else
+            alert("WTF? We got neither WIN nor LOSE!");
+    }
+
+    function _noticeHandler(notice) {
+        switch (notice) {
+            case "YourTurn":
+                _setupShotListener();
+                break;
+            case "ExpectedCoordinates":
+                _shot();
+                break;
+            default:
+                break;
+        }
+    }
+
+    function _fieldChangesHandler(data) {
+        var field = null;
+        if (data.fieldStatus === "First") {
+            console.log("first field");
+            field = $('#player');
+        }
+        else if (data.fieldStatus === "Second") {
+            console.log("second field");
+            field = $('#enemy');
+        }
+        else {
+            alert("what field did you mean?");
+        }
+        console.log("hit");
+        console.log(data.hit);
+        console.log("miss");
+        console.log(data.misses);
+        if (data.misses) {
+            for (var i = 0; i < data.misses.length; i++) {
+                var x = data.misses[i].x;
+                var y = data.misses[i].y;
+                _setFieldStatus(x, y, "lightsteelblue");
+            }
+        }
+        if (data.hit) {
+            var x = data.hit.x;
+            var y = data.hit.y;
+            _setFieldStatus(x, y, "darkorange")
+        }
+
+        function _setFieldStatus(x, y, color) {
+            var row = field.find(".game-field-row").eq(y);
+            row.find('.game-field-cell').eq(x).css({"background": color});
+        }
+    }
+
+    function _setupSocket(mode) {
         _socket = new WebSocket("ws://" + _ip + ":" + _port + "/" + mode);
 
         _socket.onopen = function() {
@@ -188,8 +247,19 @@ var gamebot = (function() {
                 case "Notice":
                     console.log("I'm a notice handler");
                     console.log(msg.data);
-                default:
+                    _noticeHandler(msg.data);
                     break;
+                case "BattleResult":
+                    console.log("I'm a BattleResult handler");
+                    console.log(msg.data);
+                    _battleResultHandler(msg.data);
+                    break;
+                case "FieldChanges":
+                    console.log("I'm a FieldChanges handler");
+                    _fieldChangesHandler(msg.data);
+                    break;
+                default:
+                    console.log("Not in switch: " + msg.data);
             }
         }
         _socket.onclose = function(event) {
@@ -211,7 +281,7 @@ var gamebot = (function() {
     }
 
     return {
-        init: _setup
+        init: _setupListeners
     }
 })();
 

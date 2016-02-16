@@ -10,7 +10,7 @@ block content
         .ship.ship-3
         .ship.ship-4
     .game-field.left
-        table.game-field-table
+        table.game-field-table#player
             -var n = 0
             while n < 10
                 - n++
@@ -22,7 +22,7 @@ block content
                             .game-field-inner.empty
                                                         
     .game-field.right
-        table.game-field-table
+        table.game-field-table#enemy
             -var n = 0
             while n < 10
                 - n++
