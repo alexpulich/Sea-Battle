@@ -1,0 +1,10 @@
+<<<<<<< HEAD
+node_modules
+app/bower
+app/css
+**/*.html
+.idea
+dist
+=======
+.idea
+>>>>>>> 9727d95c322b95b25f1ff28da27f60ee9ae0fc9b

@@ -1,0 +1,681 @@
+<!DOCTYPE html>
+<html lang="ru_RU">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE-edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!--SEO-->
+    <meta name="description" content="">
+    <meta name="keywords" content="">
+    <link rel="author" href="humans.txt">
+    <link rel="icon" href="">
+    <title>Морской бой | Игра</title>
+    <!--Vendor CSS-->
+    <link rel="stylesheet" href="css/vendor.min.css">
+    <!--CSS-->
+    <link rel="stylesheet" href="css/main.min.css">
+  </head>
+</html>
+<body>
+  <!--[if lt IE 7]<p class="browsehappy">Ваш браузер <strong>устарел</strong>. Пожалуйста <a href="http://browsehappy.com/">обновите</a> его.</p><![endif]
+  -->
+  <div class="container">
+    <div class="game-field left">
+      <div class="ship ship-1"></div>
+      <div class="ship ship-2"></div>
+      <div class="ship ship-3"></div>
+      <div class="ship ship-4"></div>
+    </div>
+    <div class="game-field left">
+      <table id="player" class="game-field-table">
+        <tr class="game-field-row">
+          <td class="game-field-cell">
+            <div class="game-field-inner empty"></div>
+          </td>
+          <td class="game-field-cell">
+            <div class="game-field-inner empty"></div>
+          </td>
+          <td class="game-field-cell">
+            <div class="game-field-inner empty"></div>
+          </td>
+          <td class="game-field-cell">
+            <div class="game-field-inner empty"></div>
+          </td>
+          <td class="game-field-cell">
+            <div class="game-field-inner empty"></div>
+          </td>
+          <td class="game-field-cell">
+            <div class="game-field-inner empty"></div>
+          </td>
+          <td class="game-field-cell">
+            <div class="game-field-inner empty"></div>
+          </td>
+          <td class="game-field-cell">
+            <div class="game-field-inner empty"></div>
+          </td>
+          <td class="game-field-cell">
+            <div class="game-field-inner empty"></div>
+          </td>
+          <td class="game-field-cell">
+            <div class="game-field-inner empty"></div>
+          </td>
+        </tr>
+        <tr class="game-field-row">
+          <td class="game-field-cell">
+            <div class="game-field-inner empty"></div>
+          </td>
+          <td class="game-field-cell">
+            <div class="game-field-inner empty"></div>
+          </td>
+          <td class="game-field-cell">
+            <div class="game-field-inner empty"></div>
+          </td>
+          <td class="game-field-cell">
+            <div class="game-field-inner empty"></div>
+          </td>
+          <td class="game-field-cell">
+            <div class="game-field-inner empty"></div>
+          </td>
+          <td class="game-field-cell">
+            <div class="game-field-inner empty"></div>
+          </td>
+          <td class="game-field-cell">
+            <div class="game-field-inner empty"></div>
+          </td>
+          <td class="game-field-cell">
+            <div class="game-field-inner empty"></div>
+          </td>
+          <td class="game-field-cell">
+            <div class="game-field-inner empty"></div>
+          </td>
+          <td class="game-field-cell">
+            <div class="game-field-inner empty"></div>
+          </td>
+        </tr>
+        <tr class="game-field-row">
+          <td class="game-field-cell">
+            <div class="game-field-inner empty"></div>
+          </td>
+          <td class="game-field-cell">
+            <div class="game-field-inner empty"></div>
+          </td>
+          <td class="game-field-cell">
+            <div class="game-field-inner empty"></div>
+          </td>
+          <td class="game-field-cell">
+            <div class="game-field-inner empty"></div>
+          </td>
+          <td class="game-field-cell">
+            <div class="game-field-inner empty"></div>
+          </td>
+          <td class="game-field-cell">
+            <div class="game-field-inner empty"></div>
+          </td>
+          <td class="game-field-cell">
+            <div class="game-field-inner empty"></div>
+          </td>
+          <td class="game-field-cell">
+            <div class="game-field-inner empty"></div>
+          </td>
+          <td class="game-field-cell">
+            <div class="game-field-inner empty"></div>
+          </td>
+          <td class="game-field-cell">
+            <div class="game-field-inner empty"></div>
+          </td>
+        </tr>
+        <tr class="game-field-row">
+          <td class="game-field-cell">
+            <div class="game-field-inner empty"></div>
+          </td>
+          <td class="game-field-cell">
+            <div class="game-field-inner empty"></div>
+          </td>
+          <td class="game-field-cell">
+            <div class="game-field-inner empty"></div>
+          </td>
+          <td class="game-field-cell">
+            <div class="game-field-inner empty"></div>
+          </td>
+          <td class="game-field-cell">
+            <div class="game-field-inner empty"></div>
+          </td>
+          <td class="game-field-cell">
+            <div class="game-field-inner empty"></div>
+          </td>
+          <td class="game-field-cell">
+            <div class="game-field-inner empty"></div>
+          </td>
+          <td class="game-field-cell">
+            <div class="game-field-inner empty"></div>
+          </td>
+          <td class="game-field-cell">
+            <div class="game-field-inner empty"></div>
+          </td>
+          <td class="game-field-cell">
+            <div class="game-field-inner empty"></div>
+          </td>
+        </tr>
+        <tr class="game-field-row">
+          <td class="game-field-cell">
+            <div class="game-field-inner empty"></div>
+          </td>
+          <td class="game-field-cell">
+            <div class="game-field-inner empty"></div>
+          </td>
+          <td class="game-field-cell">
+            <div class="game-field-inner empty"></div>
+          </td>
+          <td class="game-field-cell">
+            <div class="game-field-inner empty"></div>
+          </td>
+          <td class="game-field-cell">
+            <div class="game-field-inner empty"></div>
+          </td>
+          <td class="game-field-cell">
+            <div class="game-field-inner empty"></div>
+          </td>
+          <td class="game-field-cell">
+            <div class="game-field-inner empty"></div>
+          </td>
+          <td class="game-field-cell">
+            <div class="game-field-inner empty"></div>
+          </td>
+          <td class="game-field-cell">
+            <div class="game-field-inner empty"></div>
+          </td>
+          <td class="game-field-cell">
+            <div class="game-field-inner empty"></div>
+          </td>
+        </tr>
+        <tr class="game-field-row">
+          <td class="game-field-cell">
+            <div class="game-field-inner empty"></div>
+          </td>
+          <td class="game-field-cell">
+            <div class="game-field-inner empty"></div>
+          </td>
+          <td class="game-field-cell">
+            <div class="game-field-inner empty"></div>
+          </td>
+          <td class="game-field-cell">
+            <div class="game-field-inner empty"></div>
+          </td>
+          <td class="game-field-cell">
+            <div class="game-field-inner empty"></div>
+          </td>
+          <td class="game-field-cell">
+            <div class="game-field-inner empty"></div>
+          </td>
+          <td class="game-field-cell">
+            <div class="game-field-inner empty"></div>
+          </td>
+          <td class="game-field-cell">
+            <div class="game-field-inner empty"></div>
+          </td>
+          <td class="game-field-cell">
+            <div class="game-field-inner empty"></div>
+          </td>
+          <td class="game-field-cell">
+            <div class="game-field-inner empty"></div>
+          </td>
+        </tr>
+        <tr class="game-field-row">
+          <td class="game-field-cell">
+            <div class="game-field-inner empty"></div>
+          </td>
+          <td class="game-field-cell">
+            <div class="game-field-inner empty"></div>
+          </td>
+          <td class="game-field-cell">
+            <div class="game-field-inner empty"></div>
+          </td>
+          <td class="game-field-cell">
+            <div class="game-field-inner empty"></div>
+          </td>
+          <td class="game-field-cell">
+            <div class="game-field-inner empty"></div>
+          </td>
+          <td class="game-field-cell">
+            <div class="game-field-inner empty"></div>
+          </td>
+          <td class="game-field-cell">
+            <div class="game-field-inner empty"></div>
+          </td>
+          <td class="game-field-cell">
+            <div class="game-field-inner empty"></div>
+          </td>
+          <td class="game-field-cell">
+            <div class="game-field-inner empty"></div>
+          </td>
+          <td class="game-field-cell">
+            <div class="game-field-inner empty"></div>
+          </td>
+        </tr>
+        <tr class="game-field-row">
+          <td class="game-field-cell">
+            <div class="game-field-inner empty"></div>
+          </td>
+          <td class="game-field-cell">
+            <div class="game-field-inner empty"></div>
+          </td>
+          <td class="game-field-cell">
+            <div class="game-field-inner empty"></div>
+          </td>
+          <td class="game-field-cell">
+            <div class="game-field-inner empty"></div>
+          </td>
+          <td class="game-field-cell">
+            <div class="game-field-inner empty"></div>
+          </td>
+          <td class="game-field-cell">
+            <div class="game-field-inner empty"></div>
+          </td>
+          <td class="game-field-cell">
+            <div class="game-field-inner empty"></div>
+          </td>
+          <td class="game-field-cell">
+            <div class="game-field-inner empty"></div>
+          </td>
+          <td class="game-field-cell">
+            <div class="game-field-inner empty"></div>
+          </td>
+          <td class="game-field-cell">
+            <div class="game-field-inner empty"></div>
+          </td>
+        </tr>
+        <tr class="game-field-row">
+          <td class="game-field-cell">
+            <div class="game-field-inner empty"></div>
+          </td>
+          <td class="game-field-cell">
+            <div class="game-field-inner empty"></div>
+          </td>
+          <td class="game-field-cell">
+            <div class="game-field-inner empty"></div>
+          </td>
+          <td class="game-field-cell">
+            <div class="game-field-inner empty"></div>
+          </td>
+          <td class="game-field-cell">
+            <div class="game-field-inner empty"></div>
+          </td>
+          <td class="game-field-cell">
+            <div class="game-field-inner empty"></div>
+          </td>
+          <td class="game-field-cell">
+            <div class="game-field-inner empty"></div>
+          </td>
+          <td class="game-field-cell">
+            <div class="game-field-inner empty"></div>
+          </td>
+          <td class="game-field-cell">
+            <div class="game-field-inner empty"></div>
+          </td>
+          <td class="game-field-cell">
+            <div class="game-field-inner empty"></div>
+          </td>
+        </tr>
+        <tr class="game-field-row">
+          <td class="game-field-cell">
+            <div class="game-field-inner empty"></div>
+          </td>
+          <td class="game-field-cell">
+            <div class="game-field-inner empty"></div>
+          </td>
+          <td class="game-field-cell">
+            <div class="game-field-inner empty"></div>
+          </td>
+          <td class="game-field-cell">
+            <div class="game-field-inner empty"></div>
+          </td>
+          <td class="game-field-cell">
+            <div class="game-field-inner empty"></div>
+          </td>
+          <td class="game-field-cell">
+            <div class="game-field-inner empty"></div>
+          </td>
+          <td class="game-field-cell">
+            <div class="game-field-inner empty"></div>
+          </td>
+          <td class="game-field-cell">
+            <div class="game-field-inner empty"></div>
+          </td>
+          <td class="game-field-cell">
+            <div class="game-field-inner empty"></div>
+          </td>
+          <td class="game-field-cell">
+            <div class="game-field-inner empty"></div>
+          </td>
+        </tr>
+      </table>
+    </div>
+    <div class="game-field right">
+      <table id="enemy" class="game-field-table">
+        <tr class="game-field-row">
+          <td class="game-field-cell">
+            <div class="game-field-inner"></div>
+          </td>
+          <td class="game-field-cell">
+            <div class="game-field-inner"></div>
+          </td>
+          <td class="game-field-cell">
+            <div class="game-field-inner"></div>
+          </td>
+          <td class="game-field-cell">
+            <div class="game-field-inner"></div>
+          </td>
+          <td class="game-field-cell">
+            <div class="game-field-inner"></div>
+          </td>
+          <td class="game-field-cell">
+            <div class="game-field-inner"></div>
+          </td>
+          <td class="game-field-cell">
+            <div class="game-field-inner"></div>
+          </td>
+          <td class="game-field-cell">
+            <div class="game-field-inner"></div>
+          </td>
+          <td class="game-field-cell">
+            <div class="game-field-inner"></div>
+          </td>
+          <td class="game-field-cell">
+            <div class="game-field-inner"></div>
+          </td>
+        </tr>
+        <tr class="game-field-row">
+          <td class="game-field-cell">
+            <div class="game-field-inner"></div>
+          </td>
+          <td class="game-field-cell">
+            <div class="game-field-inner"></div>
+          </td>
+          <td class="game-field-cell">
+            <div class="game-field-inner"></div>
+          </td>
+          <td class="game-field-cell">
+            <div class="game-field-inner"></div>
+          </td>
+          <td class="game-field-cell">
+            <div class="game-field-inner"></div>
+          </td>
+          <td class="game-field-cell">
+            <div class="game-field-inner"></div>
+          </td>
+          <td class="game-field-cell">
+            <div class="game-field-inner"></div>
+          </td>
+          <td class="game-field-cell">
+            <div class="game-field-inner"></div>
+          </td>
+          <td class="game-field-cell">
+            <div class="game-field-inner"></div>
+          </td>
+          <td class="game-field-cell">
+            <div class="game-field-inner"></div>
+          </td>
+        </tr>
+        <tr class="game-field-row">
+          <td class="game-field-cell">
+            <div class="game-field-inner"></div>
+          </td>
+          <td class="game-field-cell">
+            <div class="game-field-inner"></div>
+          </td>
+          <td class="game-field-cell">
+            <div class="game-field-inner"></div>
+          </td>
+          <td class="game-field-cell">
+            <div class="game-field-inner"></div>
+          </td>
+          <td class="game-field-cell">
+            <div class="game-field-inner"></div>
+          </td>
+          <td class="game-field-cell">
+            <div class="game-field-inner"></div>
+          </td>
+          <td class="game-field-cell">
+            <div class="game-field-inner"></div>
+          </td>
+          <td class="game-field-cell">
+            <div class="game-field-inner"></div>
+          </td>
+          <td class="game-field-cell">
+            <div class="game-field-inner"></div>
+          </td>
+          <td class="game-field-cell">
+            <div class="game-field-inner"></div>
+          </td>
+        </tr>
+        <tr class="game-field-row">
+          <td class="game-field-cell">
+            <div class="game-field-inner"></div>
+          </td>
+          <td class="game-field-cell">
+            <div class="game-field-inner"></div>
+          </td>
+          <td class="game-field-cell">
+            <div class="game-field-inner"></div>
+          </td>
+          <td class="game-field-cell">
+            <div class="game-field-inner"></div>
+          </td>
+          <td class="game-field-cell">
+            <div class="game-field-inner"></div>
+          </td>
+          <td class="game-field-cell">
+            <div class="game-field-inner"></div>
+          </td>
+          <td class="game-field-cell">
+            <div class="game-field-inner"></div>
+          </td>
+          <td class="game-field-cell">
+            <div class="game-field-inner"></div>
+          </td>
+          <td class="game-field-cell">
+            <div class="game-field-inner"></div>
+          </td>
+          <td class="game-field-cell">
+            <div class="game-field-inner"></div>
+          </td>
+        </tr>
+        <tr class="game-field-row">
+          <td class="game-field-cell">
+            <div class="game-field-inner"></div>
+          </td>
+          <td class="game-field-cell">
+            <div class="game-field-inner"></div>
+          </td>
+          <td class="game-field-cell">
+            <div class="game-field-inner"></div>
+          </td>
+          <td class="game-field-cell">
+            <div class="game-field-inner"></div>
+          </td>
+          <td class="game-field-cell">
+            <div class="game-field-inner"></div>
+          </td>
+          <td class="game-field-cell">
+            <div class="game-field-inner"></div>
+          </td>
+          <td class="game-field-cell">
+            <div class="game-field-inner"></div>
+          </td>
+          <td class="game-field-cell">
+            <div class="game-field-inner"></div>
+          </td>
+          <td class="game-field-cell">
+            <div class="game-field-inner"></div>
+          </td>
+          <td class="game-field-cell">
+            <div class="game-field-inner"></div>
+          </td>
+        </tr>
+        <tr class="game-field-row">
+          <td class="game-field-cell">
+            <div class="game-field-inner"></div>
+          </td>
+          <td class="game-field-cell">
+            <div class="game-field-inner"></div>
+          </td>
+          <td class="game-field-cell">
+            <div class="game-field-inner"></div>
+          </td>
+          <td class="game-field-cell">
+            <div class="game-field-inner"></div>
+          </td>
+          <td class="game-field-cell">
+            <div class="game-field-inner"></div>
+          </td>
+          <td class="game-field-cell">
+            <div class="game-field-inner"></div>
+          </td>
+          <td class="game-field-cell">
+            <div class="game-field-inner"></div>
+          </td>
+          <td class="game-field-cell">
+            <div class="game-field-inner"></div>
+          </td>
+          <td class="game-field-cell">
+            <div class="game-field-inner"></div>
+          </td>
+          <td class="game-field-cell">
+            <div class="game-field-inner"></div>
+          </td>
+        </tr>
+        <tr class="game-field-row">
+          <td class="game-field-cell">
+            <div class="game-field-inner"></div>
+          </td>
+          <td class="game-field-cell">
+            <div class="game-field-inner"></div>
+          </td>
+          <td class="game-field-cell">
+            <div class="game-field-inner"></div>
+          </td>
+          <td class="game-field-cell">
+            <div class="game-field-inner"></div>
+          </td>
+          <td class="game-field-cell">
+            <div class="game-field-inner"></div>
+          </td>
+          <td class="game-field-cell">
+            <div class="game-field-inner"></div>
+          </td>
+          <td class="game-field-cell">
+            <div class="game-field-inner"></div>
+          </td>
+          <td class="game-field-cell">
+            <div class="game-field-inner"></div>
+          </td>
+          <td class="game-field-cell">
+            <div class="game-field-inner"></div>
+          </td>
+          <td class="game-field-cell">
+            <div class="game-field-inner"></div>
+          </td>
+        </tr>
+        <tr class="game-field-row">
+          <td class="game-field-cell">
+            <div class="game-field-inner"></div>
+          </td>
+          <td class="game-field-cell">
+            <div class="game-field-inner"></div>
+          </td>
+          <td class="game-field-cell">
+            <div class="game-field-inner"></div>
+          </td>
+          <td class="game-field-cell">
+            <div class="game-field-inner"></div>
+          </td>
+          <td class="game-field-cell">
+            <div class="game-field-inner"></div>
+          </td>
+          <td class="game-field-cell">
+            <div class="game-field-inner"></div>
+          </td>
+          <td class="game-field-cell">
+            <div class="game-field-inner"></div>
+          </td>
+          <td class="game-field-cell">
+            <div class="game-field-inner"></div>
+          </td>
+          <td class="game-field-cell">
+            <div class="game-field-inner"></div>
+          </td>
+          <td class="game-field-cell">
+            <div class="game-field-inner"></div>
+          </td>
+        </tr>
+        <tr class="game-field-row">
+          <td class="game-field-cell">
+            <div class="game-field-inner"></div>
+          </td>
+          <td class="game-field-cell">
+            <div class="game-field-inner"></div>
+          </td>
+          <td class="game-field-cell">
+            <div class="game-field-inner"></div>
+          </td>
+          <td class="game-field-cell">
+            <div class="game-field-inner"></div>
+          </td>
+          <td class="game-field-cell">
+            <div class="game-field-inner"></div>
+          </td>
+          <td class="game-field-cell">
+            <div class="game-field-inner"></div>
+          </td>
+          <td class="game-field-cell">
+            <div class="game-field-inner"></div>
+          </td>
+          <td class="game-field-cell">
+            <div class="game-field-inner"></div>
+          </td>
+          <td class="game-field-cell">
+            <div class="game-field-inner"></div>
+          </td>
+          <td class="game-field-cell">
+            <div class="game-field-inner"></div>
+          </td>
+        </tr>
+        <tr class="game-field-row">
+          <td class="game-field-cell">
+            <div class="game-field-inner"></div>
+          </td>
+          <td class="game-field-cell">
+            <div class="game-field-inner"></div>
+          </td>
+          <td class="game-field-cell">
+            <div class="game-field-inner"></div>
+          </td>
+          <td class="game-field-cell">
+            <div class="game-field-inner"></div>
+          </td>
+          <td class="game-field-cell">
+            <div class="game-field-inner"></div>
+          </td>
+          <td class="game-field-cell">
+            <div class="game-field-inner"></div>
+          </td>
+          <td class="game-field-cell">
+            <div class="game-field-inner"></div>
+          </td>
+          <td class="game-field-cell">
+            <div class="game-field-inner"></div>
+          </td>
+          <td class="game-field-cell">
+            <div class="game-field-inner"></div>
+          </td>
+          <td class="game-field-cell">
+            <div class="game-field-inner"></div>
+          </td>
+        </tr>
+      </table>
+    </div>
+    <div class="clearfix"></div><a id="search" class="start-game-btn">Искать противника</a><a id="bot" class="start-game-btn">С ботом</a><a id="random" class="start-game-btn">random</a><a id="confirm" class="start-game-btn">confirm</a>
+  </div>
+  <script src="js/vendor.min.js"></script>
+  <script src="js/main.min.js"></script>
+</body>
