@@ -109,20 +109,32 @@ var loader = (function() {
 
 var gamebot = (function() {
     var _BOTMODE = "pvbserver",
+        _PLAYERMODE = 'pvpserver',
         _ip = "46.32.76.190",
         _port = "8000",
         _msg = "",
         _socket = null,
-        _lastShot = null;
+        _lastShot = null,
+        _loader = null;
 
     function _setupListeners() {
         $('#bot').on('click', function() {
             _setupSocket(_BOTMODE);
         });
+        $('#search').on('click', function() {
+            _setupSocket(_PLAYERMODE);
+        })
         $(window).on('unload', function() {
             if (_socket)
                 _socket.close();
-        })
+        });
+        $('.game-field-cell').on('click', function() {
+            console.log('cell click handler');
+            var yVal = $(this).index();
+            var xVal = $(this).closest('.game-field-row').index();
+            _lastShot = {x: xVal, y: yVal};
+            _send("Shot");
+        });
         $('#random').on('click', _random);
         $('#confirm').on('click', _confirm);
     }
@@ -156,13 +168,12 @@ var gamebot = (function() {
     }   
 
     function _setupShotListener() {
-        $('.game-field-cell').on('click', function() {
-            var xVal = $(this).index();
-            var yVal = $(this).closest('.game-field-row').index();
-            _lastShot = {x: xVal, y: yVal};
-            _send("Shot");
-            // setTimeout(function() {_send(JSON.stringify(_lastShot));}, 3000);
-        });
+        // $('.game-field-cell').on('click', function() {
+        //     var xVal = $(this).index();
+        //     var yVal = $(this).closest('.game-field-row').index();
+        //     _lastShot = {x: xVal, y: yVal};
+        //     _send("Shot");
+        // });
     }
 
     function _shot(cell) {
@@ -185,6 +196,9 @@ var gamebot = (function() {
                 break;
             case "ExpectedCoordinates":
                 _shot();
+                break;
+            case "OpponentFound":
+                _loader.destroy();
                 break;
             default:
                 break;
@@ -222,8 +236,8 @@ var gamebot = (function() {
         }
 
         function _setFieldStatus(x, y, color) {
-            var row = field.find(".game-field-row").eq(y);
-            row.find('.game-field-cell').eq(x).css({"background": color});
+            var row = field.find(".game-field-row").eq(x);
+            row.find('.game-field-cell').eq(y).css({"background": color});
         }
     }
 
@@ -232,6 +246,13 @@ var gamebot = (function() {
 
         _socket.onopen = function() {
             console.log("Connected successfuly");
+            if (mode === _PLAYERMODE) {
+                _loader = $('body').maskLoader({
+                    'background': 'black',
+                    'opacity': '0.8',
+                    'imgLoader': false
+                });
+            }
         }
         _socket.onerror = function(error) {
             console.log("ERROR: " + error.data);
@@ -292,7 +313,7 @@ $(document).ready(function() {
         scroll.init();
     }
     if ($.find('#search').length > 0) {
-        loader.init();  
+        // loader.init();  
     }
 
     if($.find('.ship').length > 0) {
