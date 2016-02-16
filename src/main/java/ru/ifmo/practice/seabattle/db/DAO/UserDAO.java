@@ -27,5 +27,5 @@ public interface UserDAO {
 
     public User login(String email, String password);
 
-    public User getUserByNickname(String nickname);
+    public User getUserByNickname(String nickname) throws SQLException;
 }

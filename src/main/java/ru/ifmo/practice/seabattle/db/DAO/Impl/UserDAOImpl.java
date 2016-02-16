@@ -105,7 +105,7 @@ public class UserDAOImpl implements UserDAO {
     }
 
     @Override
-    public User getUserByNickname(String nickname) {
+    public User getUserByNickname(String nickname) throws SQLException {
         return transaction(session -> (User) session.createQuery("from User where user_nickname=:nickname").setString("nickname", nickname));
     }
 }
