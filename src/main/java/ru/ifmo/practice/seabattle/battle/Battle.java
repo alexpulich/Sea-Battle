@@ -2,12 +2,13 @@ package ru.ifmo.practice.seabattle.battle;
 
 import ru.ifmo.practice.seabattle.exceptions.BattleNotFinishedException;
 import ru.ifmo.practice.seabattle.exceptions.IllegalNumberOfShipException;
+import ru.ifmo.practice.seabattle.server.Log;
 
 import java.util.HashSet;
 
 public class Battle implements Runnable {
-    private static HashSet<BattleEndedListener> battleEndedListeners = new HashSet<>();
-    private static HashSet<NextTurnListener> nextTurnListeners = new HashSet<>();
+    private HashSet<BattleEndedListener> battleEndedListeners = new HashSet<>();
+    private HashSet<NextTurnListener> nextTurnListeners = new HashSet<>();
     private Gamer firstGamer;
     private Gamer secondGamer;
     private Gamer winner;
@@ -31,16 +32,19 @@ public class Battle implements Runnable {
     }
 
     public void start() throws IllegalNumberOfShipException {
+        Log.getInstance().sendMessage(this.getClass(), "Битва начата");
+
         Gamer attacker = firstGamer;
         Gamer defender = secondGamer;
-        HashSet<Coordinates> shotResult = null;
 
         do {
             fireNextTurnListeners(attacker);
-            Coordinates shot = attacker.nextRound(shotResult);
-            shotResult = defender.getField().shot(shot);
+            Coordinates shot = attacker.getShot();
+            HashSet<Coordinates> shotResult;
+            shotResult = defender.getFirstField().shot(shot);
+            attacker.setLastRoundResult(shotResult);
 
-            if (defender.getField().getNumberOfDestroyedDecks() == 20) {
+            if (defender.getFirstField().getNumberOfDestroyedDecks() == 20) {
                 winner = attacker;
                 looser = defender;
             } else if (shotResult == null) {
@@ -50,6 +54,7 @@ public class Battle implements Runnable {
             }
         } while (winner == null);
 
+        Log.getInstance().sendMessage(this.getClass(), "Битва завершена");
         fireBattleEndedListeners();
     }
 

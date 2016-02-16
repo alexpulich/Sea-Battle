@@ -10,8 +10,8 @@ public class BotTest {
         Bot bot1 = new Bot("Бот 1");
         Bot bot2 = new Bot("Бот 2");
 
-        Console.outputField(bot1.getField(), bot1.getNickName());
-        Console.outputField(bot2.getField(), bot2.getNickName());
+        Console.outputField(bot1.getFirstField(), bot1.getNickName());
+        Console.outputField(bot2.getFirstField(), bot2.getNickName());
 
         Battle battle = new Battle(bot1, bot2);
         try {
@@ -20,7 +20,7 @@ public class BotTest {
             e.printStackTrace();
         }
 
-        Console.outputField(bot1.getField(), bot1.getNickName());
-        Console.outputField(bot2.getField(), bot2.getNickName());
+        Console.outputField(bot1.getFirstField(), bot1.getNickName());
+        Console.outputField(bot2.getFirstField(), bot2.getNickName());
     }
 }

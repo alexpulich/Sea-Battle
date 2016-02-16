@@ -23,7 +23,7 @@ public class Coordinates {
 
     @Override
     public boolean equals(Object obj) {
-        return this.toString().equals(obj.toString());
+        return obj instanceof Coordinates && this.toString().equals(obj.toString());
     }
 
     @Override

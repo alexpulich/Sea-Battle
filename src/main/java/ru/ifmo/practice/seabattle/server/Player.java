@@ -1,33 +1,33 @@
 package ru.ifmo.practice.seabattle.server;
 
-import ru.ifmo.practice.seabattle.battle.Coordinates;
-import ru.ifmo.practice.seabattle.battle.Field;
-import ru.ifmo.practice.seabattle.battle.Gamer;
+import ru.ifmo.practice.seabattle.battle.*;
 
+import java.util.HashMap;
 import java.util.HashSet;
 
 class Player implements Gamer {
     private String nickName;
-    private Field field;
+    private FirstField firstField;
+    private SecondField secondField;
     private Coordinates shot = null;
-    private HashSet<Coordinates> shotResult = null;
+    private Coordinates lastShot = null;
     private boolean firstTurn = true;
+    private HashSet<Coordinates> resultOfPreviousShot = null;
+    private HashSet<Coordinates> blackList = new HashSet<>();
 
-    void setShot(Coordinates shot) {
-        this.shot = shot;
+    synchronized void setShot(Coordinates shot) {
+        if (!blackList.contains(shot)) {
+            blackList.add(new Coordinates(shot.getX(), shot.getY()));
+            Log.getInstance().sendMessage(this.getClass(), "Выстрел установлен");
+            this.shot = shot;
+            this.notifyAll();
+        } else throw new IllegalArgumentException("В данную клетку уже стреляли");
     }
 
-    void setShotResult(HashSet<Coordinates> shotResult) {
-        this.shotResult = shotResult;
-    }
-
-    public HashSet<Coordinates> getShotResult() {
-        return shotResult;
-    }
-
-    public Player(String nickName, Field field) {
+    public Player(String nickName, FirstField firstField, SecondField secondField) {
         this.nickName = nickName;
-        this.field = field;
+        this.firstField = firstField;
+        this.secondField = secondField;
     }
 
     @Override
@@ -36,29 +36,52 @@ class Player implements Gamer {
     }
 
     @Override
-    public Field getField() {
-        return field;
+    public FirstField getFirstField() {
+        return firstField;
     }
 
     @Override
-    public Coordinates nextRound(HashSet<Coordinates> resultOfPreviousShot) {
+    synchronized public void setLastRoundResult(HashSet<Coordinates> resultOfPreviousShot) {
+        HashMap<Coordinates, Cell> secondFieldChanges = new HashMap<>();
+
         if (!firstTurn) {
-            if (resultOfPreviousShot == null) shotResult = new HashSet<>();
-            else shotResult = resultOfPreviousShot;
-        }
-
-        while (this.shot == null) {
-            try {
-                wait(1000);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
+            if (resultOfPreviousShot == null) secondFieldChanges.put(lastShot, Cell.Miss);
+            else {
+                secondFieldChanges.put(lastShot, Cell.Hit);
+                if (resultOfPreviousShot.size() > 1)
+                    resultOfPreviousShot.forEach((coordinates) -> {
+                        if (!coordinates.equals(lastShot)) {
+                            secondFieldChanges.put(coordinates, Cell.Miss);
+                        }
+                    });
             }
+            secondField.change(secondFieldChanges);
+            Log.getInstance().sendMessage(this.getClass(), "Второе поле" + nickName + "изменено");
         }
 
-        Coordinates shot = this.shot;
-        this.shot = null;
+        this.resultOfPreviousShot = resultOfPreviousShot;
+    }
+
+    @Override
+    synchronized public Coordinates getShot() {
+        try {
+            if (shot == null) {
+                Log.getInstance().sendMessage(this.getClass(), "Ожидаем выстрела");
+                this.wait();
+                Log.getInstance().sendMessage(this.getClass(), "Выстрел произведен");
+            }
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        lastShot = new Coordinates(shot.getX(), shot.getY());
+        shot = null;
         firstTurn = false;
 
-        return shot;
+        return new Coordinates(lastShot.getX(), lastShot.getY());
+    }
+
+    public SecondField getSecondField() {
+        return secondField;
     }
 }
