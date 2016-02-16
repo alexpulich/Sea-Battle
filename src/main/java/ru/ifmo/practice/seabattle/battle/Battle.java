@@ -41,11 +41,7 @@ public class Battle implements Runnable {
             fireNextTurnListeners(attacker);
             Coordinates shot = attacker.getShot();
             HashSet<Coordinates> shotResult;
-            try {
-                shotResult = defender.getFirstField().shot(shot);
-            } catch (IllegalArgumentException e) {
-                continue;
-            }
+            shotResult = defender.getFirstField().shot(shot);
             attacker.setLastRoundResult(shotResult);
 
             if (defender.getFirstField().getNumberOfDestroyedDecks() == 20) {

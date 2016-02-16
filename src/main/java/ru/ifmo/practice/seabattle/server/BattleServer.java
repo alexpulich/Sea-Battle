@@ -153,18 +153,17 @@ abstract class BattleServer extends HttpServlet implements FieldChangesListener,
         commands.remove(session.getId());
         if (players.containsKey(session.getId()) && turns.containsKey(session.getId())
                 && turns.get(session.getId())) {
-            turns.put(session.getId(), false);
             Coordinates shot;
 
             try {
                 shot = new Gson().fromJson(message, Coordinates.class);
                 Player player = players.get(session.getId());
-
                 player.setShot(shot);
+                turns.put(session.getId(), false);
             } catch (JsonSyntaxException | JsonIOException | IllegalArgumentException e) {
                 sendMessage(new Message<>(Notice.Error), session);
             }
-
+            
         } else sendMessage(new Message<>(Notice.Error), session);
     }
 

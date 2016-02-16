@@ -13,11 +13,15 @@ class Player implements Gamer {
     private Coordinates lastShot = null;
     private boolean firstTurn = true;
     private HashSet<Coordinates> resultOfPreviousShot = null;
+    private HashSet<Coordinates> blackList = new HashSet<>();
 
     synchronized void setShot(Coordinates shot) {
-        Log.getInstance().sendMessage(this.getClass(), "Выстрел установлен");
-        this.shot = shot;
-        this.notifyAll();
+        if (!blackList.contains(shot)) {
+            blackList.add(new Coordinates(shot.getX(), shot.getY()));
+            Log.getInstance().sendMessage(this.getClass(), "Выстрел установлен");
+            this.shot = shot;
+            this.notifyAll();
+        } else throw new IllegalArgumentException("В данную клетку уже стреляли");
     }
 
     public Player(String nickName, FirstField firstField, SecondField secondField) {
@@ -37,12 +41,7 @@ class Player implements Gamer {
     }
 
     @Override
-    public void setLastRoundResult(HashSet<Coordinates> resultOfPreviousShot) {
-        this.resultOfPreviousShot = resultOfPreviousShot;
-    }
-
-    @Override
-    public Coordinates getShot() {
+    synchronized public void setLastRoundResult(HashSet<Coordinates> resultOfPreviousShot) {
         HashMap<Coordinates, Cell> secondFieldChanges = new HashMap<>();
 
         if (!firstTurn) {
@@ -60,6 +59,11 @@ class Player implements Gamer {
             Log.getInstance().sendMessage(this.getClass(), "Второе поле" + nickName + "изменено");
         }
 
+        this.resultOfPreviousShot = resultOfPreviousShot;
+    }
+
+    @Override
+    synchronized public Coordinates getShot() {
         try {
             if (shot == null) {
                 Log.getInstance().sendMessage(this.getClass(), "Ожидаем выстрела");
