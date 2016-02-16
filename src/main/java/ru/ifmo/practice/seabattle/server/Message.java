@@ -1,6 +1,6 @@
 package ru.ifmo.practice.seabattle.server;
 
-class Message<T> {
+public class Message<T> {
     private String type;
     private T data;
 

@@ -1,9 +1,8 @@
 package ru.ifmo.practice.seabattle.server;
 
-import com.google.gson.Gson;
-import com.google.gson.JsonIOException;
-import com.google.gson.JsonSyntaxException;
-import ru.ifmo.practice.seabattle.battle.*;
+import ru.ifmo.practice.seabattle.battle.Battle;
+import ru.ifmo.practice.seabattle.battle.Field;
+import ru.ifmo.practice.seabattle.battle.Gamer;
 
 import javax.websocket.OnClose;
 import javax.websocket.OnMessage;
@@ -11,25 +10,19 @@ import javax.websocket.OnOpen;
 import javax.websocket.Session;
 import javax.websocket.server.ServerEndpoint;
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
 
 @ServerEndpoint("/pvpserver")
-public class PvPServer extends Server implements BattleServer {
+public class PvPServer extends BattleServer {
     private static ArrayList<Room> freeRooms = new ArrayList<>();
     private static ArrayList<Room> fullRooms = new ArrayList<>();
-    private static HashMap<String, Session> sessions = new HashMap<>();
-    private static HashMap<String, Player> players = new HashMap<>();
-    private static HashMap<String, Battle> battles = new HashMap<>();
-    private static HashMap<String, Command> commands = new HashMap<>();
-    private static HashMap<String, Field> fields = new HashMap<>();
     private static HashMap<String, Boolean> readyToBattle = new HashMap<>();
-    private static HashMap<String, Boolean> turns = new HashMap<>();
-    private static HashMap<String, Thread> threads = new HashMap<>();
 
     @OnOpen
     public void onOpen(Session session) throws IOException {
         sessions.put(session.getId(), session);
-        commands.put(session.getId(), null);
         readyToBattle.put(session.getId(), false);
         if (freeRooms.isEmpty()) {
             Room room = new Room();
@@ -41,8 +34,8 @@ public class PvPServer extends Server implements BattleServer {
             room.add(session.getId());
             fullRooms.add(room);
 
-            sendMessage(new Message<>(Notice.OpponentFound), room.getPlayer1());
-            sendMessage(new Message<>(Notice.OpponentFound), room.getPlayer2());
+            sendMessage(new Message<>(Notice.OpponentFound), sessions.get(room.getPlayer1()));
+            sendMessage(new Message<>(Notice.OpponentFound), sessions.get(room.getPlayer2()));
         }
     }
 
@@ -107,102 +100,52 @@ public class PvPServer extends Server implements BattleServer {
 
     @OnMessage
     public void onMessage(String message, Session session) throws IOException {
-        commands.put(session.getId(),
-                parseMessage(commands.get(session.getId()), message, this, session.getId()));
+        parseMessage(message, session);
     }
 
     @Override
-    public void sendMessage(Message message, String sessionId) throws IOException {
-        sendMessage(new Gson().toJson(message), sessions.get(sessionId));
-    }
-
-    @Override
-    public void placeShipsRandom(String sessionID) throws IOException {
-        Field field = placeShipsRandom(this);
-        fields.put(sessionID, field);
-        sendMessage(new Message<>(field.getCurrentConditions()), sessionID);
-    }
-
-    @Override
-    public void setField(String message, String sessionId) throws IOException {
-        Cell[][] fieldCells;
-
-        try {
-            fieldCells = new Gson().fromJson(message, Cell[][].class);
-        } catch (JsonSyntaxException | JsonIOException e) {
-            sendMessage(new Message<>(Notice.Error), sessionId);
-            return;
-        }
-
-        Field field = setField(fieldCells, this);
-        if (field == null) sendMessage(new Message<>(Notice.OK), sessionId);
-        else {
-            fields.put(sessionId, field);
-            sendMessage(new Message<>(Notice.Error), sessionId);
-        }
-    }
-
-    @Override
-    public void startBattle(String sessionId) throws IOException {
+    public void startBattle(Session session) throws IOException {
         Room room = null;
 
         for (Room rom : fullRooms) {
-            if (rom.contains(sessionId)) {
+            if (rom.contains(session.getId())) {
                 room = rom;
                 break;
             }
         }
 
-        String nickName;
-        String opponentId;
+        if (fields.containsKey(session.getId()) && !battles.containsKey(session.getId()) && room != null) {
+            String nickName;
+            String opponentId;
 
-        if (room.getPlayer1().equals(sessionId)) {
-            nickName = "Игрок 1";
-            opponentId = room.getPlayer2();
-        } else {
-            nickName = "Игрок 2";
-            opponentId = room.getPlayer1();
-        }
-
-        readyToBattle.put(sessionId, true);
-        Player player = new Player(nickName, fields.get(sessionId));
-        players.put(sessionId, player);
-        turns.put(sessionId, false);
-
-        if (readyToBattle.get(opponentId)) {
-            Battle battle;
-
-            if (room.getPlayer1().equals(sessionId))
-                battle = new Battle(player, players.get(opponentId));
-            else battle = new Battle(players.get(opponentId), player);
-
-            battle.addBattleEndedListener(this);
-            battle.addNextTurnListener(this);
-
-            Thread thread = new Thread(battle);
-            threads.put(sessionId, thread);
-            thread.start();
-        }
-    }
-
-    @Override
-    public void shot(String message, String sessionId) throws IOException {
-        if (players.containsKey(sessionId)
-                && turns.containsKey(sessionId) && turns.get(sessionId)) {
-            turns.put(sessionId, false);
-            Coordinates coordinates;
-
-            try {
-                coordinates = new Gson().fromJson(message, Coordinates.class);
-            } catch (JsonSyntaxException | JsonIOException e) {
-                sendMessage(new Message<>(Notice.Error), sessionId);
-                return;
+            if (room.getPlayer1().equals(session.getId())) {
+                nickName = "Игрок 1";
+                opponentId = room.getPlayer2();
+            } else {
+                nickName = "Игрок 2";
+                opponentId = room.getPlayer1();
             }
 
-            sendMessage(new Message<>(shot(coordinates, players.get(sessionId))), sessionId);
-        } else {
-            sendMessage(new Message<>(Notice.Error), sessionId);
-        }
+            readyToBattle.put(session.getId(), true);
+            Player player = new Player(nickName, fields.get(session.getId()));
+            players.put(session.getId(), player);
+            turns.put(session.getId(), false);
+
+            if (readyToBattle.get(opponentId)) {
+                Battle battle;
+
+                if (room.getPlayer1().equals(session.getId()))
+                    battle = new Battle(player, players.get(opponentId));
+                else battle = new Battle(players.get(opponentId), player);
+
+                battle.addBattleEndedListener(this);
+                battle.addNextTurnListener(this);
+
+                Thread thread = new Thread(battle);
+                threads.put(session.getId(), thread);
+                thread.start();
+            }
+        } else sendMessage(new Message<>(Notice.Error), session);
     }
 
     @Override
@@ -218,44 +161,18 @@ public class PvPServer extends Server implements BattleServer {
             }
         }
 
-        String loserId;
+        if (room != null) {
 
-        if (room.getPlayer1().equals(winnerId)) loserId = room.getPlayer2();
-        else loserId = room.getPlayer1();
+            String loserId;
 
-        try {
-            sendMessage(new Message<>(BattleResult.Win), winnerId);
-            sendMessage(new Message<>(BattleResult.Lose), loserId);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    @Override
-    public void shotInField(Field field, Coordinates hit, HashSet<Coordinates> misses) {
-        if (fields.containsValue(field)) {
-            String sessionId = getSessionId(fields, field);
+            if (room.getPlayer1().equals(winnerId)) loserId = room.getPlayer2();
+            else loserId = room.getPlayer1();
 
             try {
-                sendMessage(new Message<>(new FieldChanges(FieldStatus.First, hit,
-                        misses)), sessionId);
+                sendMessage(new Message<>(BattleResult.Win), sessions.get(winnerId));
+                sendMessage(new Message<>(BattleResult.Lose), sessions.get(loserId));
             } catch (IOException e) {
                 e.printStackTrace();
-            }
-        }
-    }
-
-    @Override
-    public void nextTurn(Gamer gamer) {
-        if (players.containsValue(gamer)) {
-            String sessionId = getSessionId(players, (Player)gamer);
-
-            turns.put(sessionId, true);
-
-            try {
-                sendMessage(new Message<>(Notice.YourTurn), sessionId);
-            } catch (IOException e) {
-                System.err.print(e.getMessage());
             }
         }
     }

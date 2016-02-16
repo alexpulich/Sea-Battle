@@ -6,8 +6,8 @@ import ru.ifmo.practice.seabattle.exceptions.IllegalNumberOfShipException;
 import java.util.HashSet;
 
 public class Battle implements Runnable {
-    private static HashSet<BattleEndedListener> battleEndedListeners = new HashSet<>();
-    private static HashSet<NextTurnListener> nextTurnListeners = new HashSet<>();
+    private HashSet<BattleEndedListener> battleEndedListeners = new HashSet<>();
+    private HashSet<NextTurnListener> nextTurnListeners = new HashSet<>();
     private Gamer firstGamer;
     private Gamer secondGamer;
     private Gamer winner;

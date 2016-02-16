@@ -11,17 +11,24 @@ class Player implements Gamer {
     private Field field;
     private Coordinates shot = null;
     private HashSet<Coordinates> shotResult = null;
-    private boolean firstTurn = true;
 
-    void setShot(Coordinates shot) {
+    synchronized void setShot(Coordinates shot) {
         this.shot = shot;
+
+        this.notifyAll();
+
+        try {
+            if (shotResult == null) this.wait();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 
-    void setShotResult(HashSet<Coordinates> shotResult) {
+    synchronized void setShotResult(HashSet<Coordinates> shotResult) {
         this.shotResult = shotResult;
     }
 
-    public HashSet<Coordinates> getShotResult() {
+    synchronized public HashSet<Coordinates> getShotResult() {
         return shotResult;
     }
 
@@ -41,23 +48,20 @@ class Player implements Gamer {
     }
 
     @Override
-    public Coordinates nextRound(HashSet<Coordinates> resultOfPreviousShot) {
-        if (!firstTurn) {
-            if (resultOfPreviousShot == null) shotResult = new HashSet<>();
-            else shotResult = resultOfPreviousShot;
-        }
+    public synchronized Coordinates nextRound(HashSet<Coordinates> resultOfPreviousShot) {
+        if (resultOfPreviousShot == null) shotResult = new HashSet<>();
+        else shotResult = resultOfPreviousShot;
 
-        while (this.shot == null) {
-            try {
-                wait(1000);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
+        this.notifyAll();
+
+        try {
+            if (shot == null) this.wait();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
         }
 
         Coordinates shot = this.shot;
         this.shot = null;
-        firstTurn = false;
 
         return shot;
     }

@@ -9,7 +9,7 @@ public class Field {
     private ArrayList<Ship> ships = new ArrayList<>();
     private int numberOfDestroyedDecks = 0;
     private HashSet<Coordinates> shots = new HashSet<>();
-    private static HashSet<ShotInFieldListener> listeners = new HashSet<>();
+    private HashSet<ShotInFieldListener> listeners = new HashSet<>();
 
     Field(ArrayList<Ship> ships) {
         this.ships = ships;
