@@ -1,6 +1,7 @@
 package ru.ifmo.practice.seabattle.server;
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.google.gson.JsonIOException;
 import com.google.gson.JsonSyntaxException;
 import ru.ifmo.practice.seabattle.battle.*;
@@ -14,16 +15,19 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-abstract class BattleServer extends HttpServlet implements ShotInFieldListener, NextTurnListener, BattleEndedListener {
+abstract class BattleServer extends HttpServlet implements FieldChangesListener, NextTurnListener, BattleEndedListener {
     protected static HashMap<String, Session> sessions = new HashMap<>();
     protected static HashMap<String, Player> players = new HashMap<>();
     protected static HashMap<String, Battle> battles = new HashMap<>();
     protected static HashMap<String, Command> commands = new HashMap<>();
-    protected static HashMap<String, Field> fields = new HashMap<>();
+    protected static HashMap<String, FirstField> firstFields = new HashMap<>();
+    protected static HashMap<String, SecondField> secondFields = new HashMap<>();
     protected static HashMap<String, Boolean> turns = new HashMap<>();
     protected static HashMap<String, Thread> threads = new HashMap<>();
 
     protected void parseMessage(String message, Session session) throws IOException {
+        Log.getInstance().sendMessage(this.getClass(), session.getId(), "Получено сообщение: " + message);
+
         Command result = null;
         Command lastCommand = commands.get(session.getId());
 
@@ -47,8 +51,13 @@ abstract class BattleServer extends HttpServlet implements ShotInFieldListener, 
                         break;
 
                     case SetField:
+                        result = command;
+                        sendMessage(new Message<>(Notice.ExpectedField), session);
+                        break;
+
                     case Shot:
                         result = command;
+                        sendMessage(new Message<>(Notice.ExpectedCoordinates), session);
                         break;
 
                     default:
@@ -78,16 +87,27 @@ abstract class BattleServer extends HttpServlet implements ShotInFieldListener, 
     }
 
     protected void sendMessage(Message message, Session session) throws IOException {
-        session.getBasicRemote().sendText(new Gson().toJson(message));
+        GsonBuilder gsonBuilder = new GsonBuilder();
+        Gson gson = gsonBuilder.serializeNulls().create();
+
+        Log.getInstance().sendMessage(this.getClass(), session.getId(),
+                "Отправлено сообщение: " + gson.toJson(message));
+        session.getBasicRemote().sendText(gson.toJson(message));
     }
 
     protected void placeShipsRandom(Session session) throws IOException {
         if (!battles.containsKey(session.getId())) {
-            FieldBuilder builder = new FieldBuilder();
+            if (firstFields.containsKey(session.getId()))
+                firstFields.get(session.getId()).removeChangesListener(this);
+
+            FirstFieldBuilder builder = new FirstFieldBuilder();
             builder.placeShipsRandom();
-            Field field = builder.create();
-            field.addShotListener(this);
-            fields.put(session.getId(), field);
+
+            FirstField field = builder.create();
+            field.addChangesListener(this);
+
+            firstFields.put(session.getId(), field);
+
             sendMessage(new Message<>(field.getCurrentConditions()), session);
         } else sendMessage(new Message<>(Notice.Error), session);
     }
@@ -98,6 +118,9 @@ abstract class BattleServer extends HttpServlet implements ShotInFieldListener, 
         commands.remove(session.getId());
 
         if (!battles.containsKey(session.getId())) {
+            if (firstFields.containsKey(session.getId()))
+                firstFields.get(session.getId()).removeChangesListener(this);
+
             Cell[][] fieldCells;
 
             try {
@@ -107,20 +130,20 @@ abstract class BattleServer extends HttpServlet implements ShotInFieldListener, 
                 return;
             }
 
-            FieldBuilder fieldBuilder = new FieldBuilder();
-            Field field;
+            FirstFieldBuilder firstFieldBuilder = new FirstFieldBuilder();
+            FirstField field;
 
             try {
-                fieldBuilder.addShips(fieldCells);
-                field = fieldBuilder.create();
-                field.addShotListener(this);
+                firstFieldBuilder.addShips(fieldCells);
+                field = firstFieldBuilder.create();
+                field.addChangesListener(this);
             } catch (IllegalNumberOfShipException | IllegalArgumentException e) {
                 field = null;
             }
 
             if (field == null) sendMessage(new Message<>(Notice.Error), session);
             else {
-                fields.put(session.getId(), field);
+                firstFields.put(session.getId(), field);
                 sendMessage(new Message<>(Notice.OK), session);
             }
         } else sendMessage(new Message<>(Notice.Error), session);
@@ -138,27 +161,6 @@ abstract class BattleServer extends HttpServlet implements ShotInFieldListener, 
                 Player player = players.get(session.getId());
 
                 player.setShot(shot);
-                HashSet<Coordinates> shotResult = new HashSet<>();
-                shotResult.addAll(player.getShotResult());
-                player.setShotResult(null);
-
-                Coordinates hit;
-                HashSet<Coordinates> misses = new HashSet<>();
-
-                if (shotResult.isEmpty()) {
-                    hit = null;
-                    misses.add(shot);
-                } else {
-                    hit = shot;
-                    shotResult.remove(shot);
-                    if (shotResult.isEmpty()) {
-                        misses = null;
-                    } else {
-                        misses = shotResult;
-                    }
-                }
-
-                sendMessage(new Message<>(new FieldChanges(FieldStatus.Second, hit, misses)), session);
             } catch (JsonSyntaxException | JsonIOException | IllegalArgumentException e) {
                 sendMessage(new Message<>(Notice.Error), session);
             }
@@ -169,7 +171,7 @@ abstract class BattleServer extends HttpServlet implements ShotInFieldListener, 
     protected <V> String getSessionId(HashMap<String, V> map, V value) {
         Set<Map.Entry<String, V>> entrySet = map.entrySet();
         for (Map.Entry<String, V> entry : entrySet) {
-            if (entry.getValue().equals(value)) {
+            if (entry.getValue() == value) {
                 return entry.getKey();
             }
         }
@@ -196,12 +198,24 @@ abstract class BattleServer extends HttpServlet implements ShotInFieldListener, 
     }
 
     @Override
-    public void shotInField(Field field, Coordinates hit, HashSet<Coordinates> misses) {
-        if (fields.containsValue(field)) {
-            String sessionId = getSessionId(fields, field);
+    public void fieldChanged(Field field, Coordinates hit, HashSet<Coordinates> misses) {
+        if (field instanceof FirstField && firstFields.containsValue(field)) {
+            String sessionId = getSessionId(firstFields, (FirstField)field);
 
             try {
-                sendMessage(new Message<>(new FieldChanges(FieldStatus.First, hit,
+                FieldChanges fieldChanges = new FieldChanges(FieldStatus.First, hit, misses);
+                Message<FieldChanges> message = new Message<>(fieldChanges);
+                Session session = sessions.get(sessionId);
+
+                sendMessage(message, session);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        } else if (field instanceof SecondField && secondFields.containsValue(field)) {
+            String sessionId = getSessionId(secondFields, (SecondField) field);
+
+            try {
+                sendMessage(new Message<>(new FieldChanges(FieldStatus.Second, hit,
                         misses)), sessions.get(sessionId));
             } catch (IOException e) {
                 e.printStackTrace();

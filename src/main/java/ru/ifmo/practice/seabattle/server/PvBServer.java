@@ -1,8 +1,9 @@
 package ru.ifmo.practice.seabattle.server;
 
 import ru.ifmo.practice.seabattle.battle.Battle;
-import ru.ifmo.practice.seabattle.battle.Field;
+import ru.ifmo.practice.seabattle.battle.FirstField;
 import ru.ifmo.practice.seabattle.battle.Gamer;
+import ru.ifmo.practice.seabattle.battle.SecondField;
 import ru.ifmo.practice.seabattle.battle.bot.Bot;
 
 import javax.websocket.OnClose;
@@ -16,22 +17,31 @@ import java.io.IOException;
 public class PvBServer extends BattleServer {
     @OnOpen
     public void onOpen(Session session) throws IOException {
+        Log.getInstance().sendMessage(this.getClass(), session.getId(), "Соединение установлено");
         sessions.put(session.getId(), session);
     }
 
     @OnClose
     public void onClose(Session session) throws IOException {
+        Log.getInstance().sendMessage(this.getClass(), session.getId(), "Соединение разорвано");
+
         sessions.remove(session.getId());
         players.remove(session.getId());
         if (battles.containsKey(session.getId())) {
             Battle battle = battles.get(session.getId());
             battle.removeBattleEndedListener(this);
+            battle.removeNextTurnListener(this);
             battles.remove(session.getId());
         }
-        if (fields.containsKey(session.getId())) {
-            Field field = fields.get(session.getId());
-            field.removeShotListener(this);
-            fields.remove(session.getId());
+        if (firstFields.containsKey(session.getId())) {
+            FirstField field = firstFields.get(session.getId());
+            field.removeChangesListener(this);
+            firstFields.remove(session.getId());
+        }
+        if (secondFields.containsKey(session.getId())) {
+            SecondField field = secondFields.get(session.getId());
+            field.removeChangesListener(this);
+            secondFields.remove(session.getId());
         }
         turns.remove(session.getId());
         if (threads.containsKey(session.getId())) {
@@ -49,8 +59,12 @@ public class PvBServer extends BattleServer {
 
     @Override
     public void startBattle(Session session) throws IOException {
-        if (fields.containsKey(session.getId()) && !battles.containsKey(session.getId())) {
-            Player player = new Player("Игрок", fields.get(session.getId()));
+        if (firstFields.containsKey(session.getId()) && !battles.containsKey(session.getId())) {
+            SecondField secondField = new SecondField();
+            secondField.addChangesListener(this);
+            secondFields.put(session.getId(), secondField);
+
+            Player player = new Player("Игрок", firstFields.get(session.getId()), secondField);
             Battle battle = new Battle(player, new Bot("Бот"));
             battle.addBattleEndedListener(this);
             battle.addNextTurnListener(this);
@@ -59,7 +73,7 @@ public class PvBServer extends BattleServer {
             battles.put(session.getId(), battle);
             turns.put(session.getId(), false);
 
-            Thread thread = new Thread(battle);
+            Thread thread = new Thread(battle, "Битва");
             threads.put(session.getId(), thread);
             thread.start();
         } else {

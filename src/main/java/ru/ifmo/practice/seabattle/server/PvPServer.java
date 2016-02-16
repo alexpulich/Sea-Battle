@@ -1,8 +1,9 @@
 package ru.ifmo.practice.seabattle.server;
 
 import ru.ifmo.practice.seabattle.battle.Battle;
-import ru.ifmo.practice.seabattle.battle.Field;
+import ru.ifmo.practice.seabattle.battle.FirstField;
 import ru.ifmo.practice.seabattle.battle.Gamer;
+import ru.ifmo.practice.seabattle.battle.SecondField;
 
 import javax.websocket.OnClose;
 import javax.websocket.OnMessage;
@@ -78,12 +79,18 @@ public class PvPServer extends BattleServer {
         if (battles.containsKey(sessionId)) {
             Battle battle = battles.get(sessionId);
             battle.removeBattleEndedListener(this);
+            battle.removeNextTurnListener(this);
             battles.remove(sessionId);
         }
-        if (fields.containsKey(sessionId)) {
-            Field field = fields.get(sessionId);
-            field.removeShotListener(this);
-            fields.remove(sessionId);
+        if (firstFields.containsKey(sessionId)) {
+            FirstField field = firstFields.get(sessionId);
+            field.removeChangesListener(this);
+            firstFields.remove(sessionId);
+        }
+        if (secondFields.containsKey(sessionId)) {
+            SecondField field = secondFields.get(sessionId);
+            field.removeChangesListener(this);
+            secondFields.remove(sessionId);
         }
         if (turns.containsKey(sessionId)) {
             turns.remove(sessionId);
@@ -94,8 +101,7 @@ public class PvPServer extends BattleServer {
             threads.remove(sessionId);
         }
         commands.remove(sessionId);
-        if (readyToBattle.containsKey(sessionId))
-            readyToBattle.remove(sessionId);
+        readyToBattle.remove(sessionId);
     }
 
     @OnMessage
@@ -114,7 +120,7 @@ public class PvPServer extends BattleServer {
             }
         }
 
-        if (fields.containsKey(session.getId()) && !battles.containsKey(session.getId()) && room != null) {
+        if (firstFields.containsKey(session.getId()) && !battles.containsKey(session.getId()) && room != null) {
             String nickName;
             String opponentId;
 
@@ -126,8 +132,12 @@ public class PvPServer extends BattleServer {
                 opponentId = room.getPlayer1();
             }
 
+            SecondField secondField = new SecondField();
+            secondField.addChangesListener(this);
+            secondFields.put(session.getId(), secondField);
+
             readyToBattle.put(session.getId(), true);
-            Player player = new Player(nickName, fields.get(session.getId()));
+            Player player = new Player(nickName, firstFields.get(session.getId()), secondField);
             players.put(session.getId(), player);
             turns.put(session.getId(), false);
 
@@ -141,7 +151,7 @@ public class PvPServer extends BattleServer {
                 battle.addBattleEndedListener(this);
                 battle.addNextTurnListener(this);
 
-                Thread thread = new Thread(battle);
+                Thread thread = new Thread(battle, "Битва");
                 threads.put(session.getId(), thread);
                 thread.start();
             }
