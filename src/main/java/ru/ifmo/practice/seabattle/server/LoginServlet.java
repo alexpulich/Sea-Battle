@@ -16,18 +16,17 @@ public class LoginServlet extends HttpServlet {
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         String email = req.getParameter("email").trim();
         String password = req.getParameter("password").trim();
-        User user;
-        try{
+        User user = null;
+        try {
             user = DAOFactory.getInstance().getUserDAOimpl().login(email, password);
-        }
-        catch (SQLException e){
+        } catch (SQLException e) {
             e.printStackTrace();
             resp.sendError(resp.SC_INTERNAL_SERVER_ERROR, "server error");
         }
-        if (user==null){
+        if (user == null) {
             resp.sendError(resp.SC_CONFLICT, "invalid email or password");
         }
-        HttpSession session=req.getSession(true);
+        HttpSession session = req.getSession(true);
         session.setAttribute("nickname", user.getUser_nickname());
         resp.setStatus(resp.SC_OK);
     }
