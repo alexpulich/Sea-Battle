@@ -26,4 +26,6 @@ public interface UserDAO {
     public List<Match> getAllMatches(int user_id) throws SQLException;
 
     public User login(String email, String password);
+
+    public User getUserByNickname(String nickname) throws SQLException;
 }

@@ -31,7 +31,7 @@ public class User {
         return user_nickname;
     }
 
-    @Column(name = "email", length = 20, unique = true, nullable = false)
+    @Column(name = "email", length = 254, unique = true, nullable = false)
     public String getEmail() {
         return email;
     }
