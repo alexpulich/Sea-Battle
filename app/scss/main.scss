@@ -272,11 +272,11 @@ body {
   transition: all 0.3s ease;
 
   &:hover {
-    background: #E2ECFF;
+    background: #E2ECFF url("../img/aim.png") no-repeat center center;
   }
 
   &:active {
-    background: red;
+    background: red url("../img/aim.png") no-repeat center center;
   }
   
 }
@@ -325,9 +325,6 @@ body {
   width: 120px;
 }
 
-
-
-.busy {
-  height: 5px;
+.ship-in {
   background: green;
 }
