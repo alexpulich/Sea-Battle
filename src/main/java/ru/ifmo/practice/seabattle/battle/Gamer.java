@@ -4,6 +4,7 @@ import java.util.HashSet;
 
 public interface Gamer {
     String getNickName();
-    Field getField();
-    Coordinates nextRound(HashSet<Coordinates> resultOfPreviousShot);
+    FirstField getFirstField();
+    void setLastRoundResult(HashSet<Coordinates> resultOfPreviousShot);
+    Coordinates getShot();
 }

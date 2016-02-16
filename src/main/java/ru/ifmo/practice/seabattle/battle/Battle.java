@@ -2,10 +2,13 @@ package ru.ifmo.practice.seabattle.battle;
 
 import ru.ifmo.practice.seabattle.exceptions.BattleNotFinishedException;
 import ru.ifmo.practice.seabattle.exceptions.IllegalNumberOfShipException;
+import ru.ifmo.practice.seabattle.server.Log;
 
 import java.util.HashSet;
 
-public class Battle {
+public class Battle implements Runnable {
+    private HashSet<BattleEndedListener> battleEndedListeners = new HashSet<>();
+    private HashSet<NextTurnListener> nextTurnListeners = new HashSet<>();
     private Gamer firstGamer;
     private Gamer secondGamer;
     private Gamer winner;
@@ -16,7 +19,7 @@ public class Battle {
         else return winner;
     }
 
-    public Gamer getLooser() throws BattleNotFinishedException {
+    public Gamer getLoser() throws BattleNotFinishedException {
         if (looser == null) throw new BattleNotFinishedException();
         else return looser;
     }
@@ -29,15 +32,19 @@ public class Battle {
     }
 
     public void start() throws IllegalNumberOfShipException {
+        Log.getInstance().sendMessage(this.getClass(), "Битва начата");
+
         Gamer attacker = firstGamer;
         Gamer defender = secondGamer;
-        HashSet<Coordinates> shotResult = null;
 
         do {
-            Coordinates shot = attacker.nextRound(shotResult);
-            shotResult = defender.getField().shot(shot);
+            fireNextTurnListeners(attacker);
+            Coordinates shot = attacker.getShot();
+            HashSet<Coordinates> shotResult;
+            shotResult = defender.getFirstField().shot(shot);
+            attacker.setLastRoundResult(shotResult);
 
-            if (defender.getField().getNumberOfDestroyedDecks() == 20) {
+            if (defender.getFirstField().getNumberOfDestroyedDecks() == 20) {
                 winner = attacker;
                 looser = defender;
             } else if (shotResult == null) {
@@ -46,5 +53,37 @@ public class Battle {
                 defender = foo;
             }
         } while (winner == null);
+
+        Log.getInstance().sendMessage(this.getClass(), "Битва завершена");
+        fireBattleEndedListeners();
+    }
+
+    public void addBattleEndedListener(BattleEndedListener listener) {
+        battleEndedListeners.add(listener);
+    }
+
+    public void addNextTurnListener(NextTurnListener listener) {
+        nextTurnListeners.add(listener);
+    }
+
+    public boolean removeBattleEndedListener(BattleEndedListener listener) {
+        return battleEndedListeners.remove(listener);
+    }
+
+    public boolean removeNextTurnListener(NextTurnListener listener) {
+        return nextTurnListeners.remove(listener);
+    }
+
+    private void fireBattleEndedListeners() {
+        battleEndedListeners.forEach((listener) -> listener.battleEnd(winner, looser));
+    }
+
+    private void fireNextTurnListeners(Gamer gamer) {
+        nextTurnListeners.forEach((listener) -> listener.nextTurn(gamer));
+    }
+
+    @Override
+    public void run() {
+        this.start();
     }
 }

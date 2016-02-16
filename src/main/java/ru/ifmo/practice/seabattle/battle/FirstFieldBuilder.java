@@ -6,13 +6,13 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
 
-public class FieldBuilder {
+public class FirstFieldBuilder {
     private ArrayList<Ship> ships = new ArrayList<>();
     private int[] numberOfShipsForDecks = new int[5]; // [4] - 4x, [3] - 3x, [2] - 2x, [1] - 1но палубные корабли
 
-    public Field create() throws IllegalNumberOfShipException {
+    public FirstField create() throws IllegalNumberOfShipException {
         if (ships.size() < 10) throw new IllegalNumberOfShipException("Поле еще не заполнено");
-        return new Field(ships);
+        return new FirstField(ships);
     }
 
     public void placeShipsRandom() {
@@ -108,6 +108,7 @@ public class FieldBuilder {
                             while (j + k < n) {
                                 if (field[i][j + k] == Cell.Ship) ship.add(new Coordinates(i, j + k));
                                 else break;
+                                k++;
                             }
                         } else if (i + k < n && field[i + k][j] == Cell.Ship) {
                             ship.add(new Coordinates(i + k, j));
@@ -116,6 +117,7 @@ public class FieldBuilder {
                             while (i + k < n) {
                                 if (field[i + k][j] == Cell.Ship) ship.add(new Coordinates(i + k, j));
                                 else break;
+                                k++;
                             }
                         }
 
