@@ -218,9 +218,9 @@ body {
   border: 2px solid #000;
   transition: all 0.3s ease; }
   .game-field-cell:hover {
-    background: #E2ECFF; }
+    background: #E2ECFF url("../img/aim.png") no-repeat center center; }
   .game-field-cell:active {
-    background: red; }
+    background: red url("../img/aim.png") no-repeat center center; }
 
 .clearfix:before, .clearfix:after {
   content: "";
@@ -257,6 +257,5 @@ body {
 .ship-4 {
   width: 120px; }
 
-.busy {
-  height: 5px;
+.ship-in {
   background: green; }

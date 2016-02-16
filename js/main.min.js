@@ -14,6 +14,8 @@ var scroll = (function() {
     }
 })();
 
+
+
 var dragAndDrop = (function() {
 
     //Setup module
@@ -80,32 +82,6 @@ var dragAndDrop = (function() {
     }
 })();
 
-//Loading overlay and progress module
-var loader = (function() {
-    var _load = null;
-
-    function _setUpListeners() {
-        $('#search').on('click', _addLoading);
-    }
-
-    function _addLoading() {
-        _load = $('body').maskLoader({
-            'background': 'black',
-            'opacity': '0.8',
-            'imgLoader': false
-        });
-        setTimeout(_removeLoading, 2000);
-    }
-
-    function _removeLoading() {
-        _load.destroy();
-    }
-
-    return {
-        init: _setUpListeners
-    }
-})();
-
 
 var gamebot = (function() {
     var _BOTMODE = "pvbserver",
@@ -153,10 +129,12 @@ var gamebot = (function() {
                     var cell = rows.eq(i).children().eq(j).children('.game-field-inner');
                     if (field[i][j] == 'Void') {
                         cell.removeClass('busy');
+                        cell.closest('.game-field-cell').removeClass('ship-in');
                         cell.addClass('empty');
                     } else if (field[i][j] == 'Ship') {
                         cell.removeClass('empty');
                         cell.addClass('busy');
+                        cell.closest('.game-field-cell').addClass('ship-in');
                     }
                 }
             }
@@ -174,6 +152,7 @@ var gamebot = (function() {
         //     _lastShot = {x: xVal, y: yVal};
         //     _send("Shot");
         // });
+        alert("YOUR TURN!!!!");
     }
 
     function _shot(cell) {
@@ -307,15 +286,14 @@ var gamebot = (function() {
 })();
 
 
+
+
 //Main part
 $(document).ready(function() {
     if ($.find("#fullpage").length > 0) {
         scroll.init();
     }
-    if ($.find('#search').length > 0) {
-        // loader.init();  
-    }
-
+    
     if($.find('.ship').length > 0) {
         dragAndDrop.init();
     }
