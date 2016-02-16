@@ -39,7 +39,7 @@ public class RegistrationServlet extends HttpServlet {
             }
         } catch (SQLException e) {
             e.printStackTrace();
-            resp.sendError(resp.SC_CONFLICT, "failed to carry out the user registration");
+            resp.sendError(resp.SC_INTERNAL_SERVER_ERROR, "server error");
         }
 
 
@@ -48,7 +48,7 @@ public class RegistrationServlet extends HttpServlet {
             DAOFactory.getInstance().getUserDAOimpl().addUser(user);
         } catch (SQLException e) {
             e.printStackTrace();
-            resp.sendError(resp.SC_CONFLICT, "failed to carry out the user registration");
+            resp.sendError(resp.SC_INTERNAL_SERVER_ERROR, "server error");
         }
         HttpSession session = req.getSession(true);
         session.setAttribute("nickname", nickname);
