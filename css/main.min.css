@@ -94,6 +94,10 @@ body {
   top: 0;
   left: 0; }
 
+.game-section {
+  background: url("../img/bg-game.jpg") no-repeat center center;
+  position: absolute; }
+
 .inner {
   display: table-cell;
   text-align: center;
@@ -203,24 +207,28 @@ body {
 .game-field {
   display: block;
   margin: 30px 0; }
-  .game-field.left {
-    float: left; }
-  .game-field.right {
-    float: right; }
+
+.left {
+  float: left; }
+
+.right {
+  float: right; }
 
 .game-field-table {
-  position: relative; }
+  position: relative;
+  background: url("../img/sea-bg.jpg") repeat; }
 
 .game-field-cell {
-  background: white;
   width: 30px;
   height: 30px;
   border: 2px solid #000;
   transition: all 0.3s ease; }
-  .game-field-cell:hover {
-    background: #E2ECFF url("../img/aim.png") no-repeat center center; }
-  .game-field-cell:active {
-    background: red url("../img/aim.png") no-repeat center center; }
+
+#enemy .game-field-cell:hover {
+  background: rgba(226, 236, 255, 0.5) url("../img/aim.png") no-repeat center center; }
+
+#enemy .game-field-cell:active {
+  background: rgba(255, 0, 0, 0.9) url("../img/aim.png") no-repeat center center; }
 
 .clearfix:before, .clearfix:after {
   content: "";
@@ -259,3 +267,38 @@ body {
 
 .ship-in {
   background: green; }
+
+.hit {
+  background: red; }
+
+.miss {
+  background: lightsteelblue; }
+
+.game-btn-block {
+  width: 300px; }
+
+.game-btn {
+  display: inline-block;
+  width: 200px;
+  margin: 0 auto;
+  margin-bottom: 20px;
+  cursor: pointer;
+  padding: 10px 20px;
+  font-weight: bold;
+  color: #333;
+  text-shadow: none;
+  background: #fff url("../img/firebtn.png") no-repeat center 50px;
+  border-radius: 3px;
+  -moz-border-radius: 3px;
+  -webkit-border-radius: 3px;
+  border: 1px solid #fff;
+  transition: all 0.2s 0.1s ease-out, border 0.2s 0.1s ease-out, background-position 0.8s 0.1s ease; }
+  .game-btn:hover {
+    color: #333;
+    transform: rotate(5deg); }
+
+.right .game-btn:hover {
+  transform: rotate(-5deg); }
+
+.inactive {
+  opacity: 0.2; }
