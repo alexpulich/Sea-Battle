@@ -3,37 +3,38 @@ block title
     title Морской бой | Игра
 
 block content
-
-    .game-field.left
-        .ship.ship-1
-        .ship.ship-2
-        .ship.ship-3
-        .ship.ship-4
-    .game-field.left
-        table.game-field-table#player
-            -var n = 0
-            while n < 10
-                - n++
-                tr.game-field-row
-                    -var k = 0
-                    while k < 10
-                        - k++
-                        td.game-field-cell
-                            .game-field-inner.empty
-                                                        
-    .game-field.right
-        table.game-field-table#enemy
-            -var n = 0
-            while n < 10
-                - n++
-                tr.game-field-row
-                    -var k = 0
-                    while k < 10
-                        - k++
-                        td.game-field-cell
-                            .game-field-inner
-    .clearfix
-    a.start-game-btn#search Искать противника
-    a.start-game-btn#bot С ботом
-    a.start-game-btn#random random
-    a.start-game-btn#confirm confirm
+    section
+        .section-container.game-section
+            .inner
+                .intro
+                    .game-field.left
+                        table.game-field-table#player
+                            -var n = 0
+                            while n < 10
+                                - n++
+                                tr.game-field-row
+                                    -var k = 0
+                                    while k < 10
+                                        - k++
+                                        td.game-field-cell
+                                            .game-field-inner.empty
+                                                                        
+                    .game-field.right
+                        table.game-field-table#enemy
+                            -var n = 0
+                            while n < 10
+                                - n++
+                                tr.game-field-row
+                                    -var k = 0
+                                    while k < 10
+                                        - k++
+                                        td.game-field-cell
+                                            .game-field-inner
+                    .clearfix
+                    .game-btn-block.left
+                        a.game-btn#search Искать противника
+                        a.game-btn.inactive#random Расставить корабли
+                    .game-btn-block.right
+                        a.game-btn#bot Играть с ботом
+                        a.game-btn.inactive#confirm Подтвердить расстановку
+                    .clearfi
