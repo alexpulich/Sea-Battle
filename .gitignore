@@ -12,3 +12,9 @@ hs_err_pid*
 # Intellij Idea files
 .idea
 *.iml
+
+node_modules
+app/bower
+app/css
+**/*.html
+dist
