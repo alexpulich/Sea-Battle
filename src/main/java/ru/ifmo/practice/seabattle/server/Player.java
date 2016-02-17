@@ -18,7 +18,6 @@ class Player implements Gamer {
     synchronized void setShot(Coordinates shot) {
         if (!blackList.contains(shot)) {
             blackList.add(new Coordinates(shot.getX(), shot.getY()));
-            Log.getInstance().sendMessage(this.getClass(), "Выстрел установлен");
             this.shot = shot;
             this.notifyAll();
         } else throw new IllegalArgumentException("В данную клетку уже стреляли");
@@ -56,7 +55,6 @@ class Player implements Gamer {
                     });
             }
             secondField.change(secondFieldChanges);
-            Log.getInstance().sendMessage(this.getClass(), "Второе поле" + nickName + "изменено");
         }
 
         this.resultOfPreviousShot = resultOfPreviousShot;
@@ -66,12 +64,10 @@ class Player implements Gamer {
     synchronized public Coordinates getShot() {
         try {
             if (shot == null) {
-                Log.getInstance().sendMessage(this.getClass(), "Ожидаем выстрела");
                 this.wait();
-                Log.getInstance().sendMessage(this.getClass(), "Выстрел произведен");
             }
         } catch (InterruptedException e) {
-            e.printStackTrace();
+            return null;
         }
 
         lastShot = new Coordinates(shot.getX(), shot.getY());

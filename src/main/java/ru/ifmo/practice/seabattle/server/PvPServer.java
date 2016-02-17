@@ -23,6 +23,8 @@ public class PvPServer extends BattleServer {
 
     @OnOpen
     public void onOpen(Session session) throws IOException {
+        Log.getInstance().sendMessage(this.getClass(), session.getId(), "Соединение установлено");
+
         sessions.put(session.getId(), session);
         readyToBattle.put(session.getId(), false);
         if (freeRooms.isEmpty()) {
@@ -42,6 +44,7 @@ public class PvPServer extends BattleServer {
 
     @OnClose
     public void onClose(Session session) throws IOException {
+        Log.getInstance().sendMessage(this.getClass(), session.getId(), "Соединение разорвано");
         onClose(session.getId());
 
         boolean isContains = false;
