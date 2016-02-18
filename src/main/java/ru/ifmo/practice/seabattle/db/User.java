@@ -36,7 +36,7 @@ public class User {
         return email;
     }
 
-    @Column(name = "password", length = 20, nullable = false)
+    @Column(name = "password", length = 32, nullable = false)
     public String getPassword() {
         return password;
     }
@@ -97,18 +97,6 @@ public class User {
 
     public void setRaiting(int raiting) {
         this.raiting = raiting;
-    }
-
-    public void setLoses(List<Match> loses) {
-        this.loses = loses;
-    }
-
-    public void setWins(List<Match> wins) {
-        this.wins = wins;
-    }
-
-    public void setAllMatches(List<Match> allMatches) {
-        this.allMatches = allMatches;
     }
 
     public User() {
