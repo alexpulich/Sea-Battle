@@ -19,14 +19,6 @@ import java.util.Set;
 
 abstract class BattleServer extends HttpServlet implements FieldChangesListener,
         NextTurnListener, BattleEndedListener {
-    protected static HashMap<String, Session> sessions = new HashMap<>();
-    protected static HashMap<String, Battle> battles = new HashMap<>();
-    protected static HashMap<String, Command> commands = new HashMap<>();
-    protected static HashMap<String, FirstField> firstFields = new HashMap<>();
-    protected static HashMap<String, SecondField> secondFields = new HashMap<>();
-    protected static HashMap<String, Boolean> turns = new HashMap<>();
-    protected static HashMap<String, Thread> threads = new HashMap<>();
-
     protected static HashMap<String, Player> players = new HashMap<>();
 
     protected void onOpen(Session session, HttpSession httpSession) throws IOException {

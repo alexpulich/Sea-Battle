@@ -6,39 +6,67 @@ import ru.ifmo.practice.seabattle.battle.SecondField;
 import ru.ifmo.practice.seabattle.exceptions.FieldAlreadySetException;
 import ru.ifmo.practice.seabattle.exceptions.RoomIsFullException;
 
-import javax.websocket.*;
+import javax.websocket.OnClose;
+import javax.websocket.OnMessage;
+import javax.websocket.OnOpen;
+import javax.websocket.Session;
 import javax.websocket.server.ServerEndpoint;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
+import java.util.*;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 @ServerEndpoint(value = "/pvpserver")
 public class PvPServer extends BattleServer {
-    private static ArrayList<Room> freeRooms = new ArrayList<>();
-    private static ArrayList<Room> fullRooms = new ArrayList<>();
-    private static HashMap<String, Boolean> readyToBattle = new HashMap<>();
+    private static ArrayList<String> queue = new ArrayList<>();
+    private static ArrayList<Room> rooms = new ArrayList<>();
+    private static HashMap<String, Timer> timers = new HashMap<>();
+    private static Lock lock = new ReentrantLock();
 
     @OnOpen
     public void onOpen(Session session) throws IOException {
         super.onOpen(session, ((PrincipalWithSession) session.getUserPrincipal()).getSession());
 
-        if (freeRooms.isEmpty()) {
-            Room room = new Room();
-            room.add(session.getId());
-            freeRooms.add(room);
-        } else {
-            Room room = freeRooms.get(0);
-            freeRooms.remove(room);
-            room.add(session.getId());
-            fullRooms.add(room);
+        queue.add(session.getId());
 
-            Player player1 = players.get(room.getPlayer1());
-            Player player2 = players.get(room.getPlayer2());
+        Timer timer = new Timer();
+        timers.put(session.getId(), timer);
 
-            sendMessage(new Message<>(Notice.OpponentFound), player1.getSession());
-            sendMessage(new Message<>(Notice.OpponentFound), player2.getSession());
-        }
+        TimerTask task = new TimerTask() {
+            @Override
+            public void run() {
+                lock.lock();
+                try {
+                    if (queue.contains(session.getId())) {
+                        if (queue.size() > 1) {
+                            queue.remove(session.getId());
+
+                            String opponentId = queue.get(0);
+                            queue.remove(opponentId);
+
+                            rooms.add(new Room(session.getId(), opponentId));
+
+                            try {
+                                sendMessage(new Message<>(Notice.OpponentFound), session);
+                                sendMessage(new Message<>(Notice.OpponentFound), players.get(opponentId).getSession());
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
+
+                            timers.remove(session.getId());
+                            this.cancel();
+                        }
+                    } else {
+                        timers.remove(session.getId());
+                        this.cancel();
+                    }
+                } finally {
+                    lock.unlock();
+                }
+            }
+        };
+
+        timer.schedule(task, 7000, 7000);
     }
 
     @Override
@@ -46,31 +74,22 @@ public class PvPServer extends BattleServer {
     public void onClose(Session session) throws IOException {
         super.onClose(session);
 
-        boolean isContains = false;
-        Iterator<Room> iterator = freeRooms.iterator();
-
-        while (!isContains && iterator.hasNext()) {
-            if (iterator.next().contains(session.getId())) {
-                iterator.remove();
-                isContains = true;
-            }
+        if (timers.containsKey(session.getId())) {
+            timers.get(session.getId()).cancel();
+            timers.remove(session.getId());
         }
 
-        iterator = fullRooms.iterator();
+        boolean isContains = false;
+
+        Iterator<Room> iterator = rooms.iterator();
         while (!isContains && iterator.hasNext()) {
             Room room = iterator.next();
             if (room.contains(session.getId())) {
-                String opponentId = session.getId().equals(room.getPlayer1()) ?
-                        room.getPlayer2() : room.getPlayer1();
-
-                Session opponent = players.get(opponentId).getSession();
-                super.onClose(opponent);
-                opponent.close();
-
                 iterator.remove();
                 isContains = true;
             }
         }
+
     }
 
     @Override
@@ -85,7 +104,7 @@ public class PvPServer extends BattleServer {
 
         Room room = null;
 
-        for (Room rom : fullRooms) {
+        for (Room rom : rooms) {
             if (rom.contains(session.getId())) {
                 room = rom;
                 break;
