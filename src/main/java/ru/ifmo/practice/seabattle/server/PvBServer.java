@@ -1,15 +1,12 @@
 package ru.ifmo.practice.seabattle.server;
 
 import ru.ifmo.practice.seabattle.battle.Battle;
-import ru.ifmo.practice.seabattle.battle.FirstField;
 import ru.ifmo.practice.seabattle.battle.Gamer;
 import ru.ifmo.practice.seabattle.battle.SecondField;
 import ru.ifmo.practice.seabattle.battle.bot.Bot;
+import ru.ifmo.practice.seabattle.exceptions.FieldAlreadySetException;
 
-import javax.websocket.OnClose;
-import javax.websocket.OnMessage;
-import javax.websocket.OnOpen;
-import javax.websocket.Session;
+import javax.websocket.*;
 import javax.websocket.server.ServerEndpoint;
 import java.io.IOException;
 
@@ -17,64 +14,47 @@ import java.io.IOException;
 public class PvBServer extends BattleServer {
     @OnOpen
     public void onOpen(Session session) throws IOException {
-        Log.getInstance().sendMessage(this.getClass(), session.getId(), "Соединение установлено");
-        sessions.put(session.getId(), session);
+        super.onOpen(session, ((PrincipalWithSession) session.getUserPrincipal()).getSession());
     }
 
+    @Override
     @OnClose
     public void onClose(Session session) throws IOException {
-        Log.getInstance().sendMessage(this.getClass(), session.getId(), "Соединение разорвано");
-
-        sessions.remove(session.getId());
-        players.remove(session.getId());
-        if (battles.containsKey(session.getId())) {
-            Battle battle = battles.get(session.getId());
-            battle.removeBattleEndedListener(this);
-            battle.removeNextTurnListener(this);
-            battles.remove(session.getId());
-        }
-        if (firstFields.containsKey(session.getId())) {
-            FirstField field = firstFields.get(session.getId());
-            field.removeChangesListener(this);
-            firstFields.remove(session.getId());
-        }
-        if (secondFields.containsKey(session.getId())) {
-            SecondField field = secondFields.get(session.getId());
-            field.removeChangesListener(this);
-            secondFields.remove(session.getId());
-        }
-        turns.remove(session.getId());
-        if (threads.containsKey(session.getId())) {
-            Thread thread = threads.get(session.getId());
-            thread.interrupt();
-            threads.remove(session.getId());
-        }
-        commands.remove(session.getId());
+        super.onClose(session);
     }
 
+    @Override
     @OnMessage
     public void onMessage(String message, Session session) throws IOException {
-        parseMessage(message, session);
+        super.onMessage(message, session);
     }
 
     @Override
     public void startBattle(Session session) throws IOException {
-        if (firstFields.containsKey(session.getId()) && !battles.containsKey(session.getId())) {
-            SecondField secondField = new SecondField();
-            secondField.addChangesListener(this);
-            secondFields.put(session.getId(), secondField);
+        Player player = players.get(session.getId());
 
-            Player player = new Player("Игрок", firstFields.get(session.getId()), secondField);
+        if (player.getFirstField() != null && !player.isInBattle()) {
+            SecondField secondField = new SecondField();
+
+            try {
+                player.setSecondField(secondField);
+            } catch (FieldAlreadySetException e) {
+                sendMessage(new Message<>(Notice.Error), session);
+            }
+
+            secondField.addChangesListener(this);
+
             Battle battle = new Battle(player, new Bot("Бот"));
+            Thread thread = new Thread(battle, "Битва");
+
+            try {
+                player.setBattleInfo(new BattleInfo(battle, thread));
+            } catch (FieldAlreadySetException e) {
+                sendMessage(new Message<>(Notice.Error), session);
+            }
+
             battle.addBattleEndedListener(this);
             battle.addNextTurnListener(this);
-
-            players.put(session.getId(), player);
-            battles.put(session.getId(), battle);
-            turns.put(session.getId(), false);
-
-            Thread thread = new Thread(battle, "Битва");
-            threads.put(session.getId(), thread);
             thread.start();
         } else {
             sendMessage(new Message<>(Notice.Error), session);
@@ -83,23 +63,21 @@ public class PvBServer extends BattleServer {
 
     @Override
     public void battleEnd(Gamer winner, Gamer loser) {
-        Gamer gamer;
+        Player player;
         BattleResult result;
 
-        if (players.containsValue(winner)) {
-            gamer = winner;
+        if (winner instanceof Player) {
+            player = (Player)winner;
             result = BattleResult.Win;
         }
-        else if (players.containsValue(loser)) {
-            gamer = loser;
+        else if (loser instanceof Player) {
+            player = (Player)loser;
             result = BattleResult.Lose;
         }
         else return;
 
-        String sessionId = getSessionId(players, (Player)gamer);
-
         try {
-            sendMessage(new Message<>(result), sessions.get(sessionId));
+            sendMessage(new Message<>(result), player.getSession());
         } catch (IOException e) {
             e.printStackTrace();
         }

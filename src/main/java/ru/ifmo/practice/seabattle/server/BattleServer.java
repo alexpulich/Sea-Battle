@@ -5,9 +5,11 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonIOException;
 import com.google.gson.JsonSyntaxException;
 import ru.ifmo.practice.seabattle.battle.*;
+import ru.ifmo.practice.seabattle.exceptions.FieldAlreadySetException;
 import ru.ifmo.practice.seabattle.exceptions.IllegalNumberOfShipException;
 
 import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpSession;
 import javax.websocket.Session;
 import java.io.IOException;
 import java.util.HashMap;
@@ -15,9 +17,9 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-abstract class BattleServer extends HttpServlet implements FieldChangesListener, NextTurnListener, BattleEndedListener {
+abstract class BattleServer extends HttpServlet implements FieldChangesListener,
+        NextTurnListener, BattleEndedListener {
     protected static HashMap<String, Session> sessions = new HashMap<>();
-    protected static HashMap<String, Player> players = new HashMap<>();
     protected static HashMap<String, Battle> battles = new HashMap<>();
     protected static HashMap<String, Command> commands = new HashMap<>();
     protected static HashMap<String, FirstField> firstFields = new HashMap<>();
@@ -25,11 +27,36 @@ abstract class BattleServer extends HttpServlet implements FieldChangesListener,
     protected static HashMap<String, Boolean> turns = new HashMap<>();
     protected static HashMap<String, Thread> threads = new HashMap<>();
 
-    protected void parseMessage(String message, Session session) throws IOException {
+    protected static HashMap<String, Player> players = new HashMap<>();
+
+    protected void onOpen(Session session, HttpSession httpSession) throws IOException {
+        Log.getInstance().sendMessage(this.getClass(), session.getId(), "Соединение установлено");
+
+        Object nickName = httpSession.getAttribute("nickName");
+        if (nickName != null) players.put(session.getId(), new Player(session, nickName.toString()));
+        else players.put(session.getId(), new Player(session, "Игрок " + httpSession.getId()));
+    }
+
+    protected void onClose(Session session) throws IOException {
+        Log.getInstance().sendMessage(this.getClass(), session.getId(), "Соединение разорвано");
+
+        players.remove(session.getId());
+    }
+
+    protected void onMessage(String message, Session session) throws IOException {
         Log.getInstance().sendMessage(this.getClass(), session.getId(), "Получено сообщение: " + message);
 
+        try {
+            players.get(session.getId()).setLastCommand(parseMessage(message, session));
+        } catch (FieldAlreadySetException e) {
+            sendMessage(new Message<>(Notice.Error), session);
+        }
+    }
+
+    private Command parseMessage(String message, Session session) throws IOException {
         Command result = null;
-        Command lastCommand = commands.get(session.getId());
+
+        Command lastCommand = players.get(session.getId()).popLastCommand();
 
         if (lastCommand == null) {
             Command command = null;
@@ -83,7 +110,7 @@ abstract class BattleServer extends HttpServlet implements FieldChangesListener,
             }
         }
 
-        commands.put(session.getId(), result);
+        return result;
     }
 
     protected void sendMessage(Message message, Session session) throws IOException {
@@ -92,84 +119,80 @@ abstract class BattleServer extends HttpServlet implements FieldChangesListener,
 
         Log.getInstance().sendMessage(this.getClass(), session.getId(),
                 "Отправлено сообщение: " + gson.toJson(message));
+
         session.getBasicRemote().sendText(gson.toJson(message));
     }
 
-    protected void placeShipsRandom(Session session) throws IOException {
-        if (!battles.containsKey(session.getId())) {
-            if (firstFields.containsKey(session.getId()))
-                firstFields.get(session.getId()).removeChangesListener(this);
+    private void placeShipsRandom(Session session) throws IOException {
+        Player player = players.get(session.getId());
+        FirstField playerFirstField = player.getFirstField();
 
-            FirstFieldBuilder builder = new FirstFieldBuilder();
-            builder.placeShipsRandom();
+        FirstFieldBuilder builder = new FirstFieldBuilder();
+        builder.placeShipsRandom();
 
-            FirstField field = builder.create();
-            field.addChangesListener(this);
+        FirstField firstField = builder.create();
 
-            firstFields.put(session.getId(), field);
+        try {
+            player.setFirstField(firstField);
+        } catch (FieldAlreadySetException e) {
+            sendMessage(new Message<>(Notice.Error), session);
+            return;
+        }
 
-            sendMessage(new Message<>(field.getCurrentConditions()), session);
-        } else sendMessage(new Message<>(Notice.Error), session);
+        if (playerFirstField != null) playerFirstField.removeChangesListener(this);
+        firstField.addChangesListener(this);
+
+        sendMessage(new Message<>(firstField.getCurrentConditions()), session);
     }
 
-    abstract protected void startBattle(Session session) throws IOException;
+    private void setField(String message, Session session) throws IOException {
+        Player player = players.get(session.getId());
+        FirstField playerFirstField = player.getFirstField();
 
-    protected void setField(String message, Session session) throws IOException {
-        commands.remove(session.getId());
+        Cell[][] fieldCells;
 
-        if (!battles.containsKey(session.getId())) {
-            if (firstFields.containsKey(session.getId()))
-                firstFields.get(session.getId()).removeChangesListener(this);
+        try {
+            fieldCells = new Gson().fromJson(message, Cell[][].class);
+        } catch (JsonSyntaxException | JsonIOException e) {
+            sendMessage(new Message<>(Notice.Error), session);
+            return;
+        }
 
-            Cell[][] fieldCells;
+        FirstFieldBuilder firstFieldBuilder = new FirstFieldBuilder();
+        FirstField firstField;
 
-            try {
-                fieldCells = new Gson().fromJson(message, Cell[][].class);
-            } catch (JsonSyntaxException | JsonIOException e) {
-                sendMessage(new Message<>(Notice.Error), session);
-                return;
-            }
+        try {
+            firstFieldBuilder.addShips(fieldCells);
+            firstField = firstFieldBuilder.create();
+            player.setFirstField(firstField);
+        } catch (IllegalNumberOfShipException | IllegalArgumentException
+                | FieldAlreadySetException e) {
+            sendMessage(new Message<>(Notice.Error), session);
+            return;
+        }
 
-            FirstFieldBuilder firstFieldBuilder = new FirstFieldBuilder();
-            FirstField field;
-
-            try {
-                firstFieldBuilder.addShips(fieldCells);
-                field = firstFieldBuilder.create();
-                field.addChangesListener(this);
-            } catch (IllegalNumberOfShipException | IllegalArgumentException e) {
-                field = null;
-            }
-
-            if (field == null) sendMessage(new Message<>(Notice.Error), session);
-            else {
-                firstFields.put(session.getId(), field);
-                sendMessage(new Message<>(Notice.OK), session);
-            }
-        } else sendMessage(new Message<>(Notice.Error), session);
+        playerFirstField.removeChangesListener(this);
+        firstField.addChangesListener(this);
+        sendMessage(new Message<>(Notice.FieldSet), session);
     }
 
-    protected void shot(String message, Session session) throws IOException {
-        commands.remove(session.getId());
-        if (players.containsKey(session.getId()) && turns.containsKey(session.getId())
-                && turns.get(session.getId())) {
-            Coordinates shot;
+    private void shot(String message, Session session) throws IOException {
+        Player player = players.get(session.getId());
 
+        if (player.popTurn()) {
             try {
-                shot = new Gson().fromJson(message, Coordinates.class);
-                Player player = players.get(session.getId());
+                Coordinates shot = new Gson().fromJson(message, Coordinates.class);
                 player.setShot(shot);
-                turns.put(session.getId(), false);
             } catch (JsonSyntaxException | JsonIOException | IllegalArgumentException e) {
                 sendMessage(new Message<>(Notice.Error), session);
+                player.yourTurn();
             }
-            
         } else sendMessage(new Message<>(Notice.Error), session);
     }
 
-    protected <V> String getSessionId(HashMap<String, V> map, V value) {
-        Set<Map.Entry<String, V>> entrySet = map.entrySet();
-        for (Map.Entry<String, V> entry : entrySet) {
+    protected String getPlayerSessionId(HashMap<String, Player> map, Player value) {
+        Set<Map.Entry<String, Player>> entrySet = map.entrySet();
+        for (Map.Entry<String, Player> entry : entrySet) {
             if (entry.getValue() == value) {
                 return entry.getKey();
             }
@@ -178,18 +201,19 @@ abstract class BattleServer extends HttpServlet implements FieldChangesListener,
         return null;
     }
 
+    abstract protected void startBattle(Session session) throws IOException;
+
     @Override
     abstract public void battleEnd(Gamer winner, Gamer loser);
 
     @Override
     public void nextTurn(Gamer gamer) {
-        if (players.containsValue(gamer)) {
-            String sessionId = getSessionId(players, (Player)gamer);
-
-            turns.put(sessionId, true);
+        if (gamer instanceof Player) {
+            Player player = (Player) gamer;
+            player.yourTurn();
 
             try {
-                sendMessage(new Message<>(Notice.YourTurn), sessions.get(sessionId));
+                sendMessage(new Message<>(Notice.YourTurn), player.getSession());
             } catch (IOException e) {
                 System.err.print(e.getMessage());
             }
@@ -198,26 +222,23 @@ abstract class BattleServer extends HttpServlet implements FieldChangesListener,
 
     @Override
     public void fieldChanged(Field field, Coordinates hit, HashSet<Coordinates> misses) {
-        if (field instanceof FirstField && firstFields.containsValue(field)) {
-            String sessionId = getSessionId(firstFields, (FirstField)field);
+        Set<Map.Entry<String, Player>> entrySet = players.entrySet();
 
-            try {
-                FieldChanges fieldChanges = new FieldChanges(FieldStatus.First, hit, misses);
-                Message<FieldChanges> message = new Message<>(fieldChanges);
-                Session session = sessions.get(sessionId);
-
-                sendMessage(message, session);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        } else if (field instanceof SecondField && secondFields.containsValue(field)) {
-            String sessionId = getSessionId(secondFields, (SecondField) field);
-
-            try {
-                sendMessage(new Message<>(new FieldChanges(FieldStatus.Second, hit,
-                        misses)), sessions.get(sessionId));
-            } catch (IOException e) {
-                e.printStackTrace();
+        for (Map.Entry<String, Player> entry : entrySet) {
+            if (entry.getValue().getFirstField() == field) {
+                try {
+                    sendMessage(new Message<>(new FieldChanges(FieldStatus.First, hit, misses)),
+                            entry.getValue().getSession());
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            } else if (entry.getValue().getSecondField() == field) {
+                try {
+                    sendMessage(new Message<>(new FieldChanges(FieldStatus.Second, hit, misses)),
+                            entry.getValue().getSession());
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             }
         }
     }

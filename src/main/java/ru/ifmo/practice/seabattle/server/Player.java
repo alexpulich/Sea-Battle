@@ -1,18 +1,26 @@
 package ru.ifmo.practice.seabattle.server;
 
 import ru.ifmo.practice.seabattle.battle.*;
+import ru.ifmo.practice.seabattle.exceptions.FieldAlreadySetException;
 
+import javax.websocket.Session;
 import java.util.HashMap;
 import java.util.HashSet;
 
 class Player implements Gamer {
     private String nickName;
-    private FirstField firstField;
-    private SecondField secondField;
+    private Session session;
+    private FirstField firstField = null;
+    private SecondField secondField = null;
+    private BattleInfo battleInfo = null;
+    private Command lastCommand = null;
+    private boolean turn;
+    private boolean inBattle = false;
+    private boolean readyToBattle = false;
+
     private Coordinates shot = null;
     private Coordinates lastShot = null;
     private boolean firstTurn = true;
-    private HashSet<Coordinates> resultOfPreviousShot = null;
     private HashSet<Coordinates> blackList = new HashSet<>();
 
     synchronized void setShot(Coordinates shot) {
@@ -29,6 +37,12 @@ class Player implements Gamer {
         this.secondField = secondField;
     }
 
+    public Player(Session session, String nickName) {
+        this.session = session;
+        this.nickName = nickName;
+        turn = false;
+    }
+
     @Override
     public String getNickName() {
         return nickName;
@@ -37,6 +51,70 @@ class Player implements Gamer {
     @Override
     public FirstField getFirstField() {
         return firstField;
+    }
+
+    public SecondField getSecondField() {
+        return secondField;
+    }
+
+    public Session getSession() {
+        return session;
+    }
+
+    public BattleInfo getBattleInfo() {
+        return battleInfo;
+    }
+
+    public Command popLastCommand() {
+        Command result = lastCommand;
+        lastCommand = null;
+        return result;
+    }
+
+    public boolean popTurn() {
+        if (turn) {
+            turn = false;
+            return true;
+        } else return false;
+    }
+
+    public boolean isInBattle() {
+        return inBattle;
+    }
+
+    public boolean isReadyToBattle() {
+        return readyToBattle;
+    }
+
+    public void readyToBattle() throws FieldAlreadySetException {
+        if (!readyToBattle) readyToBattle = true;
+        else throw new FieldAlreadySetException();
+    }
+
+    public void setFirstField(FirstField firstField) throws FieldAlreadySetException {
+        if (!isInBattle()) this.firstField = firstField;
+        else throw new FieldAlreadySetException();
+    }
+
+    public void setSecondField(SecondField secondField) throws FieldAlreadySetException {
+        if (!isInBattle()) this.secondField = secondField;
+        else throw new FieldAlreadySetException();
+    }
+
+    public void setBattleInfo(BattleInfo battleInfo) throws FieldAlreadySetException {
+        if (!isInBattle()) {
+            this.battleInfo = battleInfo;
+            inBattle = true;
+        } else throw new FieldAlreadySetException();
+    }
+
+    public void setLastCommand(Command lastCommand) throws FieldAlreadySetException {
+        if (this.lastCommand == null) this.lastCommand = lastCommand;
+        else throw new FieldAlreadySetException();
+    }
+
+    public void yourTurn() {
+        turn = true;
     }
 
     @Override
@@ -56,8 +134,6 @@ class Player implements Gamer {
             }
             secondField.change(secondFieldChanges);
         }
-
-        this.resultOfPreviousShot = resultOfPreviousShot;
     }
 
     @Override
@@ -77,7 +153,9 @@ class Player implements Gamer {
         return new Coordinates(lastShot.getX(), lastShot.getY());
     }
 
-    public SecondField getSecondField() {
-        return secondField;
+    @Override
+    protected void finalize() throws Throwable {
+        if (session.isOpen()) session.close();
+        super.finalize();
     }
 }

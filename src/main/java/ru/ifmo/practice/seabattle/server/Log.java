@@ -1,6 +1,6 @@
 package ru.ifmo.practice.seabattle.server;
 
-public class Log {
+class Log {
     private static class LogHolder {
         private static Log instance = new Log();
     }
