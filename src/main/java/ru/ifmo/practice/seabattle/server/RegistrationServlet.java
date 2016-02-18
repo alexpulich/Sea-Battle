@@ -8,7 +8,10 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
+import javax.xml.bind.DatatypeConverter;
 import java.io.IOException;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.sql.SQLException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -42,8 +45,18 @@ public class RegistrationServlet extends HttpServlet {
             resp.sendError(resp.SC_INTERNAL_SERVER_ERROR, "server error");
         }
 
+        MessageDigest md = null;
+        try {
+            md = MessageDigest.getInstance("MD5");
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+            resp.sendError(resp.SC_INTERNAL_SERVER_ERROR, "server error");
+        }
+        byte[] passBytes = password.getBytes("UTF-8");
+        byte[] hashBytes = md.digest(passBytes);
+        String hashString = DatatypeConverter.printHexBinary(hashBytes);
 
-        User user = new User(nickname, email, password);
+        User user = new User(nickname, email, hashString);
         try {
             DAOFactory.getInstance().getUserDAOimpl().addUser(user);
         } catch (SQLException e) {
@@ -56,7 +69,7 @@ public class RegistrationServlet extends HttpServlet {
     }
 
     private boolean validateEmail(String email) {
-        //official standart RFC 5322 regex
+        //official standard RFC 5322 regex
         Pattern pattern = Pattern.compile("(?:[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*" +
                 "|\"(?:[\\x01-\\x08\\x0b\\x0c\\x0e-\\x1f\\x21\\x23-\\x5b\\x5d-\\x7f]|\\\\[\\x01-\\x09\\x0b\\x0c\\x0e-\\x7f])*\")" +
                 "@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?" +
