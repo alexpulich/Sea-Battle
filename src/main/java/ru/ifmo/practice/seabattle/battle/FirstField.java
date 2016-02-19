@@ -15,6 +15,7 @@ public class FirstField implements Field {
         this.ships = ships;
     }
 
+    @Override
     public Cell[][] getCurrentConditions() {
         Cell[][] result = new Cell[10][10];
 
@@ -39,6 +40,20 @@ public class FirstField implements Field {
                 result[i][j] = cell;
             }
         }
+
+        return result;
+    }
+
+    public ArrayList<HashSet<Coordinates>> getCurrentShips() {
+        ArrayList<HashSet<Coordinates>> result = new ArrayList<>();
+
+        ships.forEach((ship) -> {
+            HashSet<Coordinates> decks = new HashSet<>();
+            decks.addAll(ship.getDecks());
+            decks.addAll(ship.getDestroyedDecks());
+
+            result.add(decks);
+        });
 
         return result;
     }
@@ -79,10 +94,12 @@ public class FirstField implements Field {
         }
     }
 
+    @Override
     public void addChangesListener(FieldChangesListener listener) {
         listeners.add(listener);
     }
 
+    @Override
     public boolean removeChangesListener(FieldChangesListener listener) {
         return listeners.remove(listener);
     }

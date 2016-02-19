@@ -5,8 +5,12 @@ import ru.ifmo.practice.seabattle.battle.Gamer;
 import ru.ifmo.practice.seabattle.battle.SecondField;
 import ru.ifmo.practice.seabattle.battle.bot.Bot;
 import ru.ifmo.practice.seabattle.exceptions.FieldAlreadySetException;
+import ru.ifmo.practice.seabattle.exceptions.IllegalNumberOfShipException;
 
-import javax.websocket.*;
+import javax.websocket.OnClose;
+import javax.websocket.OnMessage;
+import javax.websocket.OnOpen;
+import javax.websocket.Session;
 import javax.websocket.server.ServerEndpoint;
 import java.io.IOException;
 
@@ -32,6 +36,14 @@ public class PvBServer extends BattleServer {
     @Override
     public void startBattle(Session session) throws IOException {
         Player player = players.get(session.getId());
+
+        try {
+            setFirstField(player);
+        } catch (FieldAlreadySetException | IllegalArgumentException
+                | IllegalNumberOfShipException e) {
+            sendMessage(new Message<>(Notice.Error), session);
+            return;
+        }
 
         if (player.getFirstField() != null && !player.isInBattle()) {
             SecondField secondField = new SecondField();

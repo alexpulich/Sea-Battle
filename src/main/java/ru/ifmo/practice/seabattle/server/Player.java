@@ -14,6 +14,7 @@ class Player implements Gamer {
     private SecondField secondField = null;
     private BattleInfo battleInfo = null;
     private Command lastCommand = null;
+    private FirstFieldBuilder firstFieldBuilder = null;
     private boolean turn;
     private boolean inBattle = false;
     private boolean readyToBattle = false;
@@ -51,6 +52,10 @@ class Player implements Gamer {
     @Override
     public FirstField getFirstField() {
         return firstField;
+    }
+
+    public FirstFieldBuilder getFirstFieldBuilder() {
+        return firstFieldBuilder;
     }
 
     public SecondField getSecondField() {
@@ -91,8 +96,13 @@ class Player implements Gamer {
         else throw new FieldAlreadySetException();
     }
 
-    public void setFirstField(FirstField firstField) throws FieldAlreadySetException {
-        if (!isInBattle()) this.firstField = firstField;
+    public void setFirstFieldBuilder(FirstFieldBuilder firstFieldBuilder) throws FieldAlreadySetException {
+        if (!isInBattle()) this.firstFieldBuilder = firstFieldBuilder;
+        else throw new FieldAlreadySetException();
+    }
+
+    public void createFirstField() throws FieldAlreadySetException {
+        if (!isInBattle()) firstField = firstFieldBuilder.create();
         else throw new FieldAlreadySetException();
     }
 

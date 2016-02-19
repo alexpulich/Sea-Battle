@@ -4,6 +4,7 @@ import ru.ifmo.practice.seabattle.battle.Battle;
 import ru.ifmo.practice.seabattle.battle.Gamer;
 import ru.ifmo.practice.seabattle.battle.SecondField;
 import ru.ifmo.practice.seabattle.exceptions.FieldAlreadySetException;
+import ru.ifmo.practice.seabattle.exceptions.IllegalNumberOfShipException;
 import ru.ifmo.practice.seabattle.exceptions.RoomIsFullException;
 
 import javax.websocket.OnClose;
@@ -101,6 +102,14 @@ public class PvPServer extends BattleServer {
     @Override
     public void startBattle(Session session) throws IOException {
         Player player = players.get(session.getId());
+
+        try {
+            setFirstField(player);
+        } catch (FieldAlreadySetException | IllegalArgumentException
+                | IllegalNumberOfShipException e) {
+            sendMessage(new Message<>(Notice.Error), session);
+            return;
+        }
 
         Room room = null;
 

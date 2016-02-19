@@ -79,6 +79,12 @@ abstract class BattleServer extends HttpServlet implements FieldChangesListener,
                         sendMessage(new Message<>(Notice.ExpectedCoordinates), session);
                         break;
 
+                    case AddShip:
+                    case RemoveShip:
+                        result = command;
+                        sendMessage(new Message<>(Notice.ExpectedShip), session);
+                        break;
+
                     default:
                         sendMessage(new Message<>(Notice.Error), session);
                         break;
@@ -94,6 +100,14 @@ abstract class BattleServer extends HttpServlet implements FieldChangesListener,
 
                 case Shot:
                     shot(message, session);
+                    break;
+
+                case AddShip:
+                    addShip(message, session);
+                    break;
+
+                case RemoveShip:
+                    removeShip(message, session);
                     break;
 
                 default:
@@ -115,31 +129,31 @@ abstract class BattleServer extends HttpServlet implements FieldChangesListener,
         session.getBasicRemote().sendText(gson.toJson(message));
     }
 
-    private void placeShipsRandom(Session session) throws IOException {
-        Player player = players.get(session.getId());
-        FirstField playerFirstField = player.getFirstField();
+    protected void setFirstField(Player player) throws FieldAlreadySetException {
+        if (!player.isInBattle()) {
+            if (player.getFirstField() != null)
+                player.getFirstField().removeChangesListener(this);
+            player.createFirstField();
+            player.getFirstField().addChangesListener(this);
+        } else throw new FieldAlreadySetException();
+    }
 
+    private void placeShipsRandom(Session session) throws IOException {
         FirstFieldBuilder builder = new FirstFieldBuilder();
         builder.placeShipsRandom();
 
-        FirstField firstField = builder.create();
-
         try {
-            player.setFirstField(firstField);
+            players.get(session.getId()).setFirstFieldBuilder(builder);
         } catch (FieldAlreadySetException e) {
             sendMessage(new Message<>(Notice.Error), session);
             return;
         }
 
-        if (playerFirstField != null) playerFirstField.removeChangesListener(this);
-        firstField.addChangesListener(this);
-
-        sendMessage(new Message<>(firstField.getCurrentConditions()), session);
+        sendMessage(new Message<>(builder.create().getCurrentShips()), session);
     }
 
     private void setField(String message, Session session) throws IOException {
         Player player = players.get(session.getId());
-        FirstField playerFirstField = player.getFirstField();
 
         Cell[][] fieldCells;
 
@@ -155,17 +169,50 @@ abstract class BattleServer extends HttpServlet implements FieldChangesListener,
 
         try {
             firstFieldBuilder.addShips(fieldCells);
-            firstField = firstFieldBuilder.create();
-            player.setFirstField(firstField);
+            player.setFirstFieldBuilder(firstFieldBuilder);
         } catch (IllegalNumberOfShipException | IllegalArgumentException
                 | FieldAlreadySetException e) {
             sendMessage(new Message<>(Notice.Error), session);
             return;
         }
 
-        playerFirstField.removeChangesListener(this);
-        firstField.addChangesListener(this);
         sendMessage(new Message<>(Notice.FieldSet), session);
+    }
+
+    private void addShip(String message, Session session) throws IOException {
+        Player player = players.get(session.getId());
+
+        FirstFieldBuilder builder = player.getFirstFieldBuilder();
+        try {
+            if (builder == null) {
+                builder = new FirstFieldBuilder();
+                player.setFirstFieldBuilder(builder);
+            }
+
+            builder.addShip(new Gson().fromJson(message, HashSet.class));
+        } catch (IllegalNumberOfShipException | IllegalArgumentException
+                | FieldAlreadySetException | JsonSyntaxException
+                | JsonIOException e) {
+            sendMessage(new Message<>(Notice.Error), session);
+        }
+    }
+
+    private void removeShip(String message, Session session) throws IOException {
+        Player player = players.get(session.getId());
+
+        FirstFieldBuilder builder = player.getFirstFieldBuilder();
+        try {
+            if (builder == null) {
+                builder = new FirstFieldBuilder();
+                player.setFirstFieldBuilder(builder);
+            }
+
+            if (!builder.removeShip(new Gson().fromJson(message, HashSet.class)))
+                sendMessage(new Message<>(Notice.Error), session);
+        } catch (FieldAlreadySetException | JsonSyntaxException
+                | JsonIOException e) {
+            sendMessage(new Message<>(Notice.Error), session);
+        }
     }
 
     private void shot(String message, Session session) throws IOException {
@@ -182,7 +229,7 @@ abstract class BattleServer extends HttpServlet implements FieldChangesListener,
         } else sendMessage(new Message<>(Notice.Error), session);
     }
 
-    protected String getPlayerSessionId(HashMap<String, Player> map, Player value) {
+/*    protected String getPlayerSessionId(HashMap<String, Player> map, Player value) {
         Set<Map.Entry<String, Player>> entrySet = map.entrySet();
         for (Map.Entry<String, Player> entry : entrySet) {
             if (entry.getValue() == value) {
@@ -191,7 +238,7 @@ abstract class BattleServer extends HttpServlet implements FieldChangesListener,
         }
 
         return null;
-    }
+    }*/
 
     abstract protected void startBattle(Session session) throws IOException;
 
