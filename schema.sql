@@ -1,10 +1,10 @@
 CREATE TABLE User (
   `id`            INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
   `user_nickname` VARCHAR(20)  NOT NULL UNIQUE,
-  `email`         VARCHAR(254)  NOT NULL UNIQUE,
+  `email`         VARCHAR(254) NOT NULL UNIQUE,
   `games_count`   INT          NOT NULL DEFAULT '0',
   `wins_count`    INT          NOT NULL DEFAULT '0',
-  `password`      CHAR(32)  NOT NULL,
+  `password`      CHAR(32)     NOT NULL,
   `raiting`       INT          NOT NULL DEFAULT '0'
 )
   ENGINE = InnoDB;
