@@ -59,12 +59,15 @@ public class RegistrationServlet extends HttpServlet {
         User user = new User(nickname, email, hashString);
         try {
             DAOFactory.getInstance().getUserDAOimpl().addUser(user);
+            user = DAOFactory.getInstance().getUserDAOimpl().getUserByNickname(user.getUser_nickname());//для получения id юзера после внесения в базу
         } catch (SQLException e) {
             e.printStackTrace();
             resp.sendError(resp.SC_INTERNAL_SERVER_ERROR, "server error");
         }
+
         HttpSession session = req.getSession(true);
         session.setAttribute("nickname", nickname);
+        session.setAttribute("id",user.getId());
         resp.setStatus(resp.SC_OK);
     }
 
