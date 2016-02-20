@@ -12,10 +12,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpSession;
 import javax.websocket.Session;
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 abstract class BattleServer extends HttpServlet implements FieldChangesListener,
         NextTurnListener, BattleEndedListener {
@@ -80,9 +77,13 @@ abstract class BattleServer extends HttpServlet implements FieldChangesListener,
                         break;
 
                     case AddShip:
+                        result = command;
+                        sendMessage(new Message<>(Notice.ExpectedAddShip), session);
+                        break;
+
                     case RemoveShip:
                         result = command;
-                        sendMessage(new Message<>(Notice.ExpectedShip), session);
+                        sendMessage(new Message<>(Notice.ExpectedRemoveShip), session);
                         break;
 
                     default:
@@ -189,7 +190,13 @@ abstract class BattleServer extends HttpServlet implements FieldChangesListener,
                 player.setFirstFieldBuilder(builder);
             }
 
-            builder.addShip(new Gson().fromJson(message, HashSet.class));
+            Coordinates[] coordinates = new Gson().fromJson(message, Coordinates[].class);
+            HashSet<Coordinates> ship = new HashSet<>();
+            ship.addAll(Arrays.asList(coordinates));
+
+            builder.addShip(ship);
+
+            sendMessage(new Message<>(Notice.ShipAdded), session);
         } catch (IllegalNumberOfShipException | IllegalArgumentException
                 | FieldAlreadySetException | JsonSyntaxException
                 | JsonIOException e) {
@@ -207,8 +214,15 @@ abstract class BattleServer extends HttpServlet implements FieldChangesListener,
                 player.setFirstFieldBuilder(builder);
             }
 
-            if (!builder.removeShip(new Gson().fromJson(message, HashSet.class)))
+            Coordinates[] coordinates = new Gson().fromJson(message, Coordinates[].class);
+            HashSet<Coordinates> ship = new HashSet<>();
+            ship.addAll(Arrays.asList(coordinates));
+
+            if (!builder.removeShip(ship))
                 sendMessage(new Message<>(Notice.Error), session);
+            else {
+                sendMessage(new Message<>(Notice.ShipRemoved), session);
+            }
         } catch (FieldAlreadySetException | JsonSyntaxException
                 | JsonIOException e) {
             sendMessage(new Message<>(Notice.Error), session);
