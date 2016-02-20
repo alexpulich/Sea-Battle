@@ -8,12 +8,12 @@ import ru.ifmo.practice.seabattle.db.User;
 import java.sql.SQLException;
 
 public class BattleResultHandler {
-    public void handle(String winner_nickname, String loser_nickname) {
+    public void handle(int winner_id, int loser_id) {
         User winner = null;
         User loser = null;
         try {
-            winner = DAOFactory.getInstance().getUserDAOimpl().getUserByNickname(winner_nickname);
-            loser = DAOFactory.getInstance().getUserDAOimpl().getUserByNickname(loser_nickname);
+            winner = DAOFactory.getInstance().getUserDAOimpl().getUserById(winner_id);
+            loser = DAOFactory.getInstance().getUserDAOimpl().getUserById(loser_id);
         } catch (SQLException e) {
             e.printStackTrace();
         }
