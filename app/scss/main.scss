@@ -255,6 +255,7 @@ body {
 
 
 .game-field {
+  position:relative;
   display: block;
   margin: 30px 0;
 }
@@ -268,7 +269,6 @@ body {
 }
 
 .game-field-table {
-  position:relative;
   background: url('../img/sea-bg.jpg') repeat;
 }
 
@@ -320,27 +320,67 @@ body {
   margin-left: 20px;
 }
 
+.ships-container {
+  width: 100%;
+  height: 140px;
+  position: relative;
+  margin-bottom: 10px;
+}
+
 .ship {
   height: 30px;
   border: 1px solid black;
   background: gray;
   z-index: 3;
+  position: absolute;
 }
 
 .ship-1 {
   width: 30px;
+  top: 0;
+
+  &:nth-child(1) {
+    left: 0;
+  }
+  
+  &:nth-child(2) {
+    left: 35px;
+  }
+
+  &:nth-child(3) {
+    left: 70px;
+  }
+
+  &:nth-child(4) {
+    left: 105px;
+  }
 }
 
 .ship-2 {
   width: 60px;
+  top: 35px;
+
+  &:nth-child(5) {
+    left: 0px;
+  }
+
+  &:nth-child(6) {
+    left: 65px;
+  }
+
+  &:nth-child(7) {
+    left: 130px;
+  }
 }
 
 .ship-3 {
   width: 90px;
+  top: 70px;
 }
 
 .ship-4 {
   width: 120px;
+  top: 105px;
 }
 
 .ship-in {
