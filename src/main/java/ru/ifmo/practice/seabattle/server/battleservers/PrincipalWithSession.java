@@ -1,4 +1,4 @@
-package ru.ifmo.practice.seabattle.server;
+package ru.ifmo.practice.seabattle.server.battleservers;
 
 import javax.servlet.http.HttpSession;
 import java.security.Principal;
@@ -16,6 +16,6 @@ public class PrincipalWithSession implements Principal {
 
     @Override
     public String getName() {
-        return ""; // whatever is appropriate for your app, e.g., user ID
+        return "";
     }
 }

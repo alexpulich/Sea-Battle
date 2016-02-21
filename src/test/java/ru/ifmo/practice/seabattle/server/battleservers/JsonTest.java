@@ -1,9 +1,12 @@
-package ru.ifmo.practice.seabattle.server;
+package ru.ifmo.practice.seabattle.server.battleservers;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import ru.ifmo.practice.seabattle.Console;
 import ru.ifmo.practice.seabattle.battle.*;
+import ru.ifmo.practice.seabattle.server.Message;
+import ru.ifmo.practice.seabattle.server.Notice;
+import ru.ifmo.practice.seabattle.server.battleservers.FieldStatus;
 
 import java.util.HashSet;
 

@@ -1,10 +1,10 @@
 package ru.ifmo.practice.seabattle.server;
 
-enum Notice {
+public enum Notice {
     OpponentFound,
+    OpponentLeft,
     YourTurn,
     FieldSet,
-    Error,
     ExpectedCoordinates,
     ExpectedField,
     ExpectedAddShip,

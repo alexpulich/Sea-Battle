@@ -1,4 +1,4 @@
-package ru.ifmo.practice.seabattle.server;
+package ru.ifmo.practice.seabattle.server.battleservers;
 
 import ru.ifmo.practice.seabattle.battle.Battle;
 

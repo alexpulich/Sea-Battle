@@ -1,11 +1,13 @@
-package ru.ifmo.practice.seabattle.server;
+package ru.ifmo.practice.seabattle.server.battleservers;
 
 import ru.ifmo.practice.seabattle.battle.Battle;
 import ru.ifmo.practice.seabattle.battle.Gamer;
 import ru.ifmo.practice.seabattle.battle.SecondField;
 import ru.ifmo.practice.seabattle.battle.bot.Bot;
 import ru.ifmo.practice.seabattle.exceptions.FieldAlreadySetException;
-import ru.ifmo.practice.seabattle.exceptions.IllegalNumberOfShipException;
+import ru.ifmo.practice.seabattle.server.BattleResult;
+import ru.ifmo.practice.seabattle.server.Error;
+import ru.ifmo.practice.seabattle.server.Message;
 
 import javax.websocket.OnClose;
 import javax.websocket.OnMessage;
@@ -37,13 +39,7 @@ public class PvBServer extends BattleServer {
     public void startBattle(Session session) throws IOException {
         Player player = players.get(session.getId());
 
-        try {
-            setFirstField(player);
-        } catch (FieldAlreadySetException | IllegalArgumentException
-                | IllegalNumberOfShipException e) {
-            sendMessage(new Message<>(Notice.Error), session);
-            return;
-        }
+        if (!setFirstField(session)) return;
 
         if (player.getFirstField() != null && !player.isInBattle()) {
             SecondField secondField = new SecondField();
@@ -51,7 +47,8 @@ public class PvBServer extends BattleServer {
             try {
                 player.setSecondField(secondField);
             } catch (FieldAlreadySetException e) {
-                sendMessage(new Message<>(Notice.Error), session);
+                sendMessage(new Message<>(Error.BattleAlreadyStart), session);
+                return;
             }
 
             secondField.addChangesListener(this);
@@ -62,14 +59,14 @@ public class PvBServer extends BattleServer {
             try {
                 player.setBattleInfo(new BattleInfo(battle, thread));
             } catch (FieldAlreadySetException e) {
-                sendMessage(new Message<>(Notice.Error), session);
+                sendMessage(new Message<>(Error.BattleAlreadyStart), session);
             }
 
             battle.addBattleEndedListener(this);
             battle.addNextTurnListener(this);
             thread.start();
         } else {
-            sendMessage(new Message<>(Notice.Error), session);
+            sendMessage(new Message<>(Error.BattleAlreadyStart), session);
         }
     }
 

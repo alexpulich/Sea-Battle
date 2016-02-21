@@ -1,11 +1,14 @@
-package ru.ifmo.practice.seabattle.server;
+package ru.ifmo.practice.seabattle.server.battleservers;
 
 import ru.ifmo.practice.seabattle.battle.Battle;
 import ru.ifmo.practice.seabattle.battle.Gamer;
 import ru.ifmo.practice.seabattle.battle.SecondField;
 import ru.ifmo.practice.seabattle.exceptions.FieldAlreadySetException;
-import ru.ifmo.practice.seabattle.exceptions.IllegalNumberOfShipException;
 import ru.ifmo.practice.seabattle.exceptions.RoomIsFullException;
+import ru.ifmo.practice.seabattle.server.BattleResult;
+import ru.ifmo.practice.seabattle.server.Error;
+import ru.ifmo.practice.seabattle.server.Message;
+import ru.ifmo.practice.seabattle.server.Notice;
 
 import javax.websocket.OnClose;
 import javax.websocket.OnMessage;
@@ -75,6 +78,8 @@ public class PvPServer extends BattleServer {
     public void onClose(Session session) throws IOException {
         super.onClose(session);
 
+        queue.remove(session.getId());
+
         if (timers.containsKey(session.getId())) {
             timers.get(session.getId()).cancel();
             timers.remove(session.getId());
@@ -86,11 +91,16 @@ public class PvPServer extends BattleServer {
         while (!isContains && iterator.hasNext()) {
             Room room = iterator.next();
             if (room.contains(session.getId())) {
+                Player opponent;
+                if (room.getPlayer1().equals(session.getId()))
+                    opponent = players.get(room.getPlayer2());
+                else opponent = players.get(room.getPlayer1());
+                sendMessage(new Message<>(Notice.OpponentLeft), opponent.getSession());
+
                 iterator.remove();
                 isContains = true;
             }
         }
-
     }
 
     @Override
@@ -103,13 +113,7 @@ public class PvPServer extends BattleServer {
     public void startBattle(Session session) throws IOException {
         Player player = players.get(session.getId());
 
-        try {
-            setFirstField(player);
-        } catch (FieldAlreadySetException | IllegalArgumentException
-                | IllegalNumberOfShipException e) {
-            sendMessage(new Message<>(Notice.Error), session);
-            return;
-        }
+        if (!setFirstField(session)) return;
 
         Room room = null;
 
@@ -127,7 +131,7 @@ public class PvPServer extends BattleServer {
                 player.setSecondField(secondField);
                 player.readyToBattle();
             } catch (FieldAlreadySetException e) {
-                sendMessage(new Message<>(Notice.Error), session);
+                sendMessage(new Message<>(Error.BattleAlreadyStart), session);
             }
 
             secondField.addChangesListener(this);
@@ -152,7 +156,7 @@ public class PvPServer extends BattleServer {
                     player.setBattleInfo(battleInfo);
                     opponent.setBattleInfo(battleInfo);
                 } catch (FieldAlreadySetException e) {
-                    sendMessage(new Message<>(Notice.Error), session);
+                    sendMessage(new Message<>(Error.BattleAlreadyStart), session);
                 }
 
                 battle.addBattleEndedListener(this);
@@ -160,7 +164,7 @@ public class PvPServer extends BattleServer {
 
                 thread.start();
             }
-        } else sendMessage(new Message<>(Notice.Error), session);
+        } else sendMessage(new Message<>(Error.BattleAlreadyStart), session);
     }
 
     @Override

@@ -1,5 +1,6 @@
 package ru.ifmo.practice.seabattle.server;
 
-enum BattleResult {
-    Win, Lose
+public enum BattleResult {
+    Win,
+    Lose
 }

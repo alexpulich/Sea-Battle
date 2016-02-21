@@ -1,7 +1,8 @@
-package ru.ifmo.practice.seabattle.server;
+package ru.ifmo.practice.seabattle.server.battleservers;
 
 import ru.ifmo.practice.seabattle.battle.*;
 import ru.ifmo.practice.seabattle.exceptions.FieldAlreadySetException;
+import ru.ifmo.practice.seabattle.server.Command;
 
 import javax.websocket.Session;
 import java.util.HashMap;
