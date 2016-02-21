@@ -434,3 +434,11 @@ body {
 .inactive {
   opacity: 0.2;
 }
+
+.fire {
+  position: absolute;
+  background: url(../img/fire2.png);
+  width: 30px;
+  height: 30px;
+  z-index: 999;
+}
