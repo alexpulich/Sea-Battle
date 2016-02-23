@@ -163,7 +163,6 @@ var dragAndDrop = (function() {
   //установка слушателей событий и подключение draggable-droppable
   function _setup() {
     _setDragAndDrop();
-    $('.ship').on('click', _rotateShip);
     $('#player .game-field-inner').on('drop', _dropShip);
     $('.ship').on('dragstop', _stopDragging);
     $('.ship').on('dragstart', _startDragging);
@@ -194,9 +193,11 @@ var dragAndDrop = (function() {
     if (flag) {
       $('#player .game-field-inner').droppable("enable");
       $('.ship').draggable("enable");
+      $('.ship').on('click', _rotateShip);
     } else {
       $('#player .game-field-inner').droppable("disable");
       $('.ship').draggable("disable");
+      $('.ship').off('click', _rotateShip);
       
     }
   }
