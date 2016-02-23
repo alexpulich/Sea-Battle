@@ -421,9 +421,6 @@ body {
   &:hover {
     color: #333;
     transform: rotate(5deg);
-    // border: 1px solid rgba(0,0,0,0);
-    // color: #fff;
-    // background: rgba(0,0,0,0) url("../img/firebtn.png") no-repeat center 0;
   }
 }
 
@@ -437,7 +434,7 @@ body {
 
 .fire {
   position: absolute;
-  background: url(../img/fire2.png);
+  background: url(../img/fire2.png) no-repeat center 0;
   width: 30px;
   height: 30px;
   z-index: 999;

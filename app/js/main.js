@@ -176,9 +176,10 @@ var dragAndDrop = (function() {
     });
   }
 
-  function _revertShip(prevX, prevY) {
+  function _revertShip(prevX, prevY, prevOrientation) {
     ship.startPos.x = prevX;
     ship.startPos.y = prevY;
+    ship.orientation = prevOrientation;
     shipsModule.setShipPosOnField(ship);
   }
 
@@ -253,6 +254,7 @@ var gameModule = (function() {
     _lastShot = null,
     _lastRemoveShipCoords = null,
     _lastAddShipCoords = null,
+    _lastOrientation = null,
     _loader = null;
 
 
@@ -407,7 +409,7 @@ var gameModule = (function() {
         alert("It's not your turn! Just wait!");
         break;
       case "IncorrectShip":
-        dragAndDrop.revertShip(_lastRemoveShipCoords[0].x,_lastRemoveShipCoords[0].y);
+        dragAndDrop.revertShip(_lastRemoveShipCoords[0].x,_lastRemoveShipCoords[0].y, _lastOrientation);
         break;
       default:
         console.log("Not handled error: " + error);
@@ -435,7 +437,7 @@ var gameModule = (function() {
       var y = data.hit.y;
       _setFieldStatus(x, y, "hit")
 
-      if (data.fieldStatus = "First") {
+      if (data.fieldStatus == "First") {
         var tablePos = $($('.game-field-table')[0]).offset();
         var fire = $('<div class="fire"/>'); 
         $('body').append(fire);
@@ -487,6 +489,7 @@ var gameModule = (function() {
           _battleResultHandler(msg.data);
           break;
         case "FieldChanges":
+          console.log(msg.data);
           _fieldChangesHandler(msg.data);
           break;
         default:
@@ -527,6 +530,8 @@ var gameModule = (function() {
   function _changingCoordsHandler(ship, mode) {
     if (mode === "RemoveShip") {
       _lastRemoveShipCoords = shipsModule.getShipCoords(ship);
+      _lastOrientation = ship.orientation;
+      alert(_lastOrientation);
       for (var i = 0; i < _lastRemoveShipCoords.length; i++) {
         var x = _lastRemoveShipCoords[i].x,
           y = _lastRemoveShipCoords[i].y;
