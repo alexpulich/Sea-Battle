@@ -20,8 +20,7 @@ body {
 body {
   font: normal 100% sans-serif;
   color: #fff;
-  text-align: center;
-  text-shadow: 1px 3px rgba(0, 0, 0, 0.5); }
+  text-align: center; }
 
 /*
  * Header
@@ -290,9 +289,6 @@ body {
   width: 120px;
   top: 105px; }
 
-.ship-in {
-  background: green; }
-
 .hit {
   background: red; }
 
@@ -326,11 +322,12 @@ body {
   transform: rotate(-5deg); }
 
 .inactive {
-  opacity: 0.2; }
+  opacity: 0.2;
+  pointer-events: none; }
 
 .fire {
   position: absolute;
-  background: url(../img/fire2.png);
+  background: url(../img/fire2.png) no-repeat center 0;
   width: 30px;
   height: 30px;
   z-index: 999; }
