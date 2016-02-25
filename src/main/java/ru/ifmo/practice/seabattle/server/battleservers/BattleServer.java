@@ -5,7 +5,8 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonIOException;
 import com.google.gson.JsonSyntaxException;
 import ru.ifmo.practice.seabattle.battle.*;
-import ru.ifmo.practice.seabattle.exceptions.FieldAlreadySetException;
+import ru.ifmo.practice.seabattle.exceptions.BattleAlreadyStartException;
+import ru.ifmo.practice.seabattle.exceptions.CommandAlreadySetException;
 import ru.ifmo.practice.seabattle.exceptions.IllegalNumberOfShipException;
 import ru.ifmo.practice.seabattle.server.*;
 import ru.ifmo.practice.seabattle.server.Error;
@@ -39,86 +40,158 @@ abstract class BattleServer extends HttpServlet implements FieldChangesListener,
 
         try {
             players.get(session.getId()).setLastCommand(parseMessage(message, session));
-        } catch (FieldAlreadySetException e) {
+        } catch (CommandAlreadySetException e) {
             sendMessage(new Message<>(Error.CommandAlreadySet), session);
         }
     }
 
     private Command parseMessage(String message, Session session) throws IOException {
         Command result = null;
-
         Command lastCommand = players.get(session.getId()).popLastCommand();
+        Player player = players.get(session.getId());
 
-        if (lastCommand == null) {
-            Command command = null;
+        try {
+            if (lastCommand == null) {
+                Command command = null;
 
-            try {
-                command = new Gson().fromJson(message, Command.class);
-            } catch (JsonSyntaxException e) {
-                sendMessage(new Message<>(Error.IncorrectJsonSyntax), session);
-            }
+                try {
+                    command = new Gson().fromJson(message, Command.class);
+                } catch (JsonSyntaxException e) {
+                    sendMessage(new Message<>(Error.IncorrectJsonSyntax), session);
+                }
 
-            if (command != null) {
-                switch (command) {
-                    case PlaceShipsRandom:
-                        placeShipsRandom(session);
-                        break;
+                if (command != null) {
+                    switch (command) {
+                        case PlaceShipsRandom:
+                            sendMessage(new Message<>(placeShipsRandom(player)), session);
+                            break;
 
-                    case StartBattle:
-                        startBattle(session);
-                        break;
+                        case StartBattle:
+                            try {
+                                startBattle(player);
+                            } catch (IllegalArgumentException | IllegalNumberOfShipException e) {
+                                sendMessage(new Message<>(Error.IncorrectField), session);
+                            }
+                            break;
 
-                    case SetField:
-                        result = command;
-                        sendMessage(new Message<>(Notice.ExpectedField), session);
-                        break;
-
-                    case Shot:
-                        if (players.get(session.getId()).isInBattle()) {
+                        case SetField:
                             result = command;
-                            sendMessage(new Message<>(Notice.ExpectedCoordinates), session);
-                        } else sendMessage(new Message<>(Error.BattleNotStart), session);
-                        break;
+                            sendMessage(new Message<>(Notice.ExpectedField), session);
+                            break;
 
-                    case AddShip:
-                        result = command;
-                        sendMessage(new Message<>(Notice.ExpectedAddShip), session);
-                        break;
+                        case Shot:
+                            if (players.get(session.getId()).isInBattle()) {
+                                result = command;
+                                sendMessage(new Message<>(Notice.ExpectedCoordinates), session);
+                            } else sendMessage(new Message<>(Error.BattleNotStart), session);
+                            break;
 
-                    case RemoveShip:
-                        result = command;
-                        sendMessage(new Message<>(Notice.ExpectedRemoveShip), session);
-                        break;
+                        case AddShip:
+                            result = command;
+                            sendMessage(new Message<>(Notice.ExpectedAddShip), session);
+                            break;
 
-                    default:
-                        sendMessage(new Message<>(Error.IncorrectCommand), session);
-                        break;
+                        case RemoveShip:
+                            result = command;
+                            sendMessage(new Message<>(Notice.ExpectedRemoveShip), session);
+                            break;
+
+                        case MoveShip:
+                            result = command;
+                            sendMessage(new Message<>(Notice.ExpectedShipMovement), session);
+                            break;
+
+                        default:
+                            sendMessage(new Message<>(Error.IncorrectCommand), session);
+                            break;
+                    }
+                } else {
+                    sendMessage(new Message<>(Error.IncorrectCommand), session);
                 }
             } else {
-                sendMessage(new Message<>(Error.IncorrectCommand), session);
+                try {
+                    switch (lastCommand) {
+                        case SetField:
+                            Cell[][] field = new Gson().fromJson(message, Cell[][].class);
+
+                            try {
+                                if (field != null) setField(field, player);
+                            } catch (IllegalNumberOfShipException | IllegalArgumentException e) {
+                                sendMessage(new Message<>(Error.IncorrectField), session);
+                            }
+
+                            sendMessage(new Message<>(Notice.FieldSet), session);
+                            break;
+
+                        case Shot:
+                            Coordinates shot = new Gson().fromJson(message, Coordinates.class);
+
+                            try {
+                                if (shot != null)
+                                    if (!shot(shot, player))
+                                        sendMessage(new Message<>(Error.NotYourTurn), session);
+                            } catch (IllegalArgumentException e) {
+                                sendMessage(new Message<>(Error.ShotRepeated), session);
+                                player.yourTurn();
+                            }
+
+                            break;
+
+                        case AddShip:
+                            HashSet<Coordinates> shipToAdd = new HashSet<>();
+                            shipToAdd.addAll(Arrays.asList(new Gson().fromJson(message, Coordinates[].class)));
+
+                            try {
+                                if (!shipToAdd.isEmpty()) {
+                                    addShip(shipToAdd, player);
+                                    sendMessage(new Message<>(Notice.ShipAdded), session);
+                                } else sendMessage(new Message<>(Error.IncorrectShip), session);
+                            } catch (IllegalNumberOfShipException e) {
+                                sendMessage(new Message<>(Error.FieldFull), session);
+                            } catch (IllegalArgumentException e) {
+                                sendMessage(new Message<>(Error.IncorrectShip), session);
+                            }
+
+                            break;
+
+                        case RemoveShip:
+                            HashSet<Coordinates> shipToRemove = new HashSet<>();
+                            shipToRemove.addAll(Arrays.asList(new Gson().fromJson(message, Coordinates[].class)));
+
+                            if (!shipToRemove.isEmpty()) {
+                                if (removeShip(shipToRemove, player))
+                                    sendMessage(new Message<>(Notice.ShipRemoved), session);
+                                else sendMessage(new Message<>(Error.ShipNotFound), session);
+                            } else sendMessage(new Message<>(Error.IncorrectShip), session);
+
+                            break;
+
+                        case MoveShip:
+                            ShipMovement movement = new Gson().fromJson(message, ShipMovement.class);
+
+                            if (movement != null) {
+                                if (moveShip(movement, player))
+                                    sendMessage(new Message<>(movement.getNewPlace()), session);
+                                else sendMessage(new Message<>(movement.getOldPlace()), session);
+                            }
+
+                            break;
+
+                        default:
+                            sendMessage(new Message<>(Error.IncorrectCommand), session);
+                            break;
+                    }
+                } catch (JsonSyntaxException | JsonIOException e) {
+                    try {
+                        player.setLastCommand(lastCommand);
+                    } catch (CommandAlreadySetException e1) {
+                        e1.printStackTrace();
+                    }
+                    sendMessage(new Message<>(Error.IncorrectJsonSyntax), session);
+                }
             }
-        } else {
-            switch (lastCommand) {
-                case SetField:
-                    setField(message, session);
-                    break;
-
-                case Shot:
-                    shot(message, session);
-                    break;
-
-                case AddShip:
-                    addShip(message, session);
-                    break;
-
-                case RemoveShip:
-                    removeShip(message, session);
-                    break;
-
-                default:
-                    sendMessage(new Message<>(Error.IncorrectCommand), session);
-                    break;
-            }
+        } catch (BattleAlreadyStartException e) {
+            sendMessage(new Message<>(Error.BattleAlreadyStart), session);
         }
 
         return result;
@@ -134,148 +207,64 @@ abstract class BattleServer extends HttpServlet implements FieldChangesListener,
         session.getBasicRemote().sendText(gson.toJson(message));
     }
 
-    protected boolean setFirstField(Session session) throws IOException {
-        Player player = players.get(session.getId());
+    private ArrayList<HashSet<Coordinates>> placeShipsRandom(Player player)
+            throws IOException, BattleAlreadyStartException {
+        FirstFieldBuilder builder = new FirstFieldBuilder();
+        builder.placeShipsRandom();
+        player.setFirstFieldBuilder(builder);
+        return builder.create().getCurrentShips();
+    }
 
-        if (!player.isInBattle()) {
-            if (player.getFirstField() != null)
-                player.getFirstField().removeChangesListener(this);
+    private void setField(Cell[][] cells, Player player) throws IOException, BattleAlreadyStartException {
+        FirstFieldBuilder firstFieldBuilder = new FirstFieldBuilder();
 
+        firstFieldBuilder.addShips(cells);
+        player.setFirstFieldBuilder(firstFieldBuilder);
+    }
+
+    private void addShip(HashSet<Coordinates> ship, Player player) throws IOException, BattleAlreadyStartException {
+        FirstFieldBuilder builder = player.getFirstFieldBuilder();
+
+        if (builder == null) {
+            builder = new FirstFieldBuilder();
+            player.setFirstFieldBuilder(builder);
+        }
+
+        builder.addShip(ship);
+    }
+
+    private boolean removeShip(HashSet<Coordinates> ship, Player player)
+            throws IOException, BattleAlreadyStartException {
+        FirstFieldBuilder builder = player.getFirstFieldBuilder();
+
+        if (builder == null) {
+            builder = new FirstFieldBuilder();
+            player.setFirstFieldBuilder(builder);
+        }
+
+        return builder.removeShip(ship);
+    }
+
+    private boolean moveShip(ShipMovement movement, Player player) throws IOException, BattleAlreadyStartException {
+        if (removeShip(movement.getOldPlace(), player)) {
             try {
-                player.createFirstField();
-            } catch (FieldAlreadySetException e) {
-                sendMessage(new Message<>(Error.BattleAlreadyStart), session);
-                return false;
+                addShip(movement.getNewPlace(), player);
+                return true;
             } catch (IllegalArgumentException | IllegalNumberOfShipException e) {
-                sendMessage(new Message<>(Error.IncorrectField), session);
+                addShip(movement.getOldPlace(), player);
                 return false;
             }
+        } else return false;
+    }
 
-            player.getFirstField().addChangesListener(this);
+    private boolean shot(Coordinates shot, Player player) throws IOException {
+        if (player.popTurn()) {
+            player.setShot(shot);
             return true;
         } else return false;
     }
 
-    private void placeShipsRandom(Session session) throws IOException {
-        FirstFieldBuilder builder = new FirstFieldBuilder();
-        builder.placeShipsRandom();
-
-        try {
-            players.get(session.getId()).setFirstFieldBuilder(builder);
-            sendMessage(new Message<>(builder.create().getCurrentShips()), session);
-        } catch (FieldAlreadySetException e) {
-            sendMessage(new Message<>(Error.BattleAlreadyStart), session);
-        }
-    }
-
-    private void setField(String message, Session session) throws IOException {
-        Player player = players.get(session.getId());
-
-        Cell[][] fieldCells;
-
-        try {
-            fieldCells = new Gson().fromJson(message, Cell[][].class);
-        } catch (JsonSyntaxException | JsonIOException e) {
-            sendMessage(new Message<>(Error.IncorrectJsonSyntax), session);
-            return;
-        }
-
-        FirstFieldBuilder firstFieldBuilder = new FirstFieldBuilder();
-
-        try {
-            firstFieldBuilder.addShips(fieldCells);
-            player.setFirstFieldBuilder(firstFieldBuilder);
-            sendMessage(new Message<>(Notice.FieldSet), session);
-        } catch (FieldAlreadySetException e) {
-            sendMessage(new Message<>(Error.BattleAlreadyStart), session);
-        } catch (IllegalNumberOfShipException | IllegalArgumentException e) {
-            sendMessage(new Message<>(Error.IncorrectField), session);
-        }
-    }
-
-    private void addShip(String message, Session session) throws IOException {
-        Player player = players.get(session.getId());
-
-        FirstFieldBuilder builder = player.getFirstFieldBuilder();
-        try {
-            if (builder == null) {
-                builder = new FirstFieldBuilder();
-                player.setFirstFieldBuilder(builder);
-            }
-
-            Coordinates[] coordinates = new Gson().fromJson(message, Coordinates[].class);
-            HashSet<Coordinates> ship = new HashSet<>();
-            ship.addAll(Arrays.asList(coordinates));
-
-            builder.addShip(ship);
-
-            sendMessage(new Message<>(Notice.ShipAdded), session);
-        } catch (IllegalNumberOfShipException e) {
-            sendMessage(new Message<>(Error.FieldFull), session);
-        } catch (IllegalArgumentException e) {
-            sendMessage(new Message<>(Error.IncorrectShip), session);
-        } catch (FieldAlreadySetException e) {
-            sendMessage(new Message<>(Error.BattleAlreadyStart), session);
-        } catch (JsonSyntaxException | JsonIOException e) {
-            sendMessage(new Message<>(Error.IncorrectJsonSyntax), session);
-        }
-    }
-
-    private void removeShip(String message, Session session) throws IOException {
-        Player player = players.get(session.getId());
-
-        FirstFieldBuilder builder = player.getFirstFieldBuilder();
-        try {
-            if (builder == null) {
-                builder = new FirstFieldBuilder();
-                player.setFirstFieldBuilder(builder);
-            }
-
-            Coordinates[] coordinates = new Gson().fromJson(message, Coordinates[].class);
-            HashSet<Coordinates> ship = new HashSet<>();
-            ship.addAll(Arrays.asList(coordinates));
-
-            if (!builder.removeShip(ship))
-                sendMessage(new Message<>(Error.ShipNotFound), session);
-            else {
-                sendMessage(new Message<>(Notice.ShipRemoved), session);
-            }
-        } catch (FieldAlreadySetException e) {
-            sendMessage(new Message<>(Error.BattleAlreadyStart), session);
-        } catch (JsonSyntaxException | JsonIOException e) {
-            sendMessage(new Message<>(Error.IncorrectJsonSyntax), session);
-        }
-    }
-
-    private void shot(String message, Session session) throws IOException {
-        Player player = players.get(session.getId());
-
-        if (player.popTurn()) {
-            try {
-                Coordinates shot = new Gson().fromJson(message, Coordinates.class);
-                player.setShot(shot);
-            } catch (IllegalArgumentException e) {
-                sendMessage(new Message<>(Error.ShotRepeated), session);
-                player.yourTurn();
-            } catch (JsonSyntaxException | JsonIOException e) {
-                sendMessage(new Message<>(Error.IncorrectJsonSyntax), session);
-                player.yourTurn();
-            }
-        } else sendMessage(new Message<>(Error.NotYourTurn), session);
-    }
-
-/*    protected String getPlayerSessionId(HashMap<String, Player> map, Player value) {
-        Set<Map.Entry<String, Player>> entrySet = map.entrySet();
-        for (Map.Entry<String, Player> entry : entrySet) {
-            if (entry.getValue() == value) {
-                return entry.getKey();
-            }
-        }
-
-        return null;
-    }*/
-
-    abstract protected void startBattle(Session session) throws IOException;
+    abstract protected void startBattle(Player player) throws IOException, BattleAlreadyStartException;
 
     @Override
     abstract public void battleEnd(Gamer winner, Gamer loser);
@@ -303,6 +292,8 @@ abstract class BattleServer extends HttpServlet implements FieldChangesListener,
                 try {
                     sendMessage(new Message<>(new FieldChanges(FieldStatus.First, hit, misses)),
                             entry.getValue().getSession());
+
+                    return;
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
@@ -310,6 +301,8 @@ abstract class BattleServer extends HttpServlet implements FieldChangesListener,
                 try {
                     sendMessage(new Message<>(new FieldChanges(FieldStatus.Second, hit, misses)),
                             entry.getValue().getSession());
+
+                    return;
                 } catch (IOException e) {
                     e.printStackTrace();
                 }

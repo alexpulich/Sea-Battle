@@ -1,7 +1,9 @@
 package ru.ifmo.practice.seabattle.server.battleservers;
 
 import ru.ifmo.practice.seabattle.battle.*;
-import ru.ifmo.practice.seabattle.exceptions.FieldAlreadySetException;
+import ru.ifmo.practice.seabattle.exceptions.BattleAlreadyStartException;
+import ru.ifmo.practice.seabattle.exceptions.CommandAlreadySetException;
+import ru.ifmo.practice.seabattle.exceptions.IllegalNumberOfShipException;
 import ru.ifmo.practice.seabattle.server.Command;
 
 import javax.websocket.Session;
@@ -55,8 +57,9 @@ class Player implements Gamer {
         return firstField;
     }
 
-    public FirstFieldBuilder getFirstFieldBuilder() {
-        return firstFieldBuilder;
+    public FirstFieldBuilder getFirstFieldBuilder() throws BattleAlreadyStartException {
+        if (!isInBattle()) return firstFieldBuilder;
+        else throw new BattleAlreadyStartException();
     }
 
     public SecondField getSecondField() {
@@ -92,36 +95,36 @@ class Player implements Gamer {
         return readyToBattle;
     }
 
-    public void readyToBattle() throws FieldAlreadySetException {
-        if (!readyToBattle) readyToBattle = true;
-        else throw new FieldAlreadySetException();
+    public void readyToBattle() {
+        readyToBattle = true;
     }
 
-    public void setFirstFieldBuilder(FirstFieldBuilder firstFieldBuilder) throws FieldAlreadySetException {
+    public void setFirstFieldBuilder(FirstFieldBuilder firstFieldBuilder) throws BattleAlreadyStartException {
         if (!isInBattle()) this.firstFieldBuilder = firstFieldBuilder;
-        else throw new FieldAlreadySetException();
+        else throw new BattleAlreadyStartException();
     }
 
-    public void createFirstField() throws FieldAlreadySetException {
-        if (!isInBattle()) firstField = firstFieldBuilder.create();
-        else throw new FieldAlreadySetException();
+    public void createFirstField() throws BattleAlreadyStartException {
+        if (firstFieldBuilder == null) throw new IllegalNumberOfShipException();
+        else if (!isInBattle()) firstField = firstFieldBuilder.create();
+        else throw new BattleAlreadyStartException();
     }
 
-    public void setSecondField(SecondField secondField) throws FieldAlreadySetException {
+    public void setSecondField(SecondField secondField) throws BattleAlreadyStartException {
         if (!isInBattle()) this.secondField = secondField;
-        else throw new FieldAlreadySetException();
+        else throw new BattleAlreadyStartException();
     }
 
-    public void setBattleInfo(BattleInfo battleInfo) throws FieldAlreadySetException {
+    public void setBattleInfo(BattleInfo battleInfo) throws BattleAlreadyStartException {
         if (!isInBattle()) {
             this.battleInfo = battleInfo;
             inBattle = true;
-        } else throw new FieldAlreadySetException();
+        } else throw new BattleAlreadyStartException();
     }
 
-    public void setLastCommand(Command lastCommand) throws FieldAlreadySetException {
+    public void setLastCommand(Command lastCommand) throws CommandAlreadySetException {
         if (this.lastCommand == null) this.lastCommand = lastCommand;
-        else throw new FieldAlreadySetException();
+        else throw new CommandAlreadySetException();
     }
 
     public void yourTurn() {

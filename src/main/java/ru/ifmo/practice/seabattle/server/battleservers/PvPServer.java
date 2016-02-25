@@ -3,10 +3,9 @@ package ru.ifmo.practice.seabattle.server.battleservers;
 import ru.ifmo.practice.seabattle.battle.Battle;
 import ru.ifmo.practice.seabattle.battle.Gamer;
 import ru.ifmo.practice.seabattle.battle.SecondField;
-import ru.ifmo.practice.seabattle.exceptions.FieldAlreadySetException;
+import ru.ifmo.practice.seabattle.exceptions.BattleAlreadyStartException;
 import ru.ifmo.practice.seabattle.exceptions.RoomIsFullException;
 import ru.ifmo.practice.seabattle.server.BattleResult;
-import ru.ifmo.practice.seabattle.server.Error;
 import ru.ifmo.practice.seabattle.server.Message;
 import ru.ifmo.practice.seabattle.server.Notice;
 
@@ -110,29 +109,27 @@ public class PvPServer extends BattleServer {
     }
 
     @Override
-    public void startBattle(Session session) throws IOException {
-        Player player = players.get(session.getId());
-
-        if (!setFirstField(session)) return;
-
+    public void startBattle(Player player) throws IOException, BattleAlreadyStartException {
         Room room = null;
 
         for (Room rom : rooms) {
-            if (rom.contains(session.getId())) {
+            if (rom.contains(player.getSession().getId())) {
                 room = rom;
                 break;
             }
         }
 
-        if (player.getFirstField() != null && !player.isInBattle() && room != null) {
+        if (player.getFirstFieldBuilder() != null && !player.isInBattle() && room != null) {
+            if (player.getFirstField() != null)
+                player.getFirstField().removeChangesListener(this);
+
+            player.createFirstField();
+            player.getFirstField().addChangesListener(this);
+
             SecondField secondField = new SecondField();
 
-            try {
-                player.setSecondField(secondField);
-                player.readyToBattle();
-            } catch (FieldAlreadySetException e) {
-                sendMessage(new Message<>(Error.BattleAlreadyStart), session);
-            }
+            player.setSecondField(secondField);
+            player.readyToBattle();
 
             secondField.addChangesListener(this);
 
@@ -145,26 +142,23 @@ public class PvPServer extends BattleServer {
             if (opponent.isReadyToBattle()) {
                 Battle battle;
 
-                if (room.getPlayer1().equals(session.getId()))
+                if (room.getPlayer1().equals(player.getSession().getId()))
                     battle = new Battle(player, opponent);
                 else battle = new Battle(opponent, player);
 
                 Thread thread = new Thread(battle);
                 BattleInfo battleInfo = new BattleInfo(battle, thread);
 
-                try {
-                    player.setBattleInfo(battleInfo);
-                    opponent.setBattleInfo(battleInfo);
-                } catch (FieldAlreadySetException e) {
-                    sendMessage(new Message<>(Error.BattleAlreadyStart), session);
-                }
+                player.setBattleInfo(battleInfo);
+                opponent.setBattleInfo(battleInfo);
 
                 battle.addBattleEndedListener(this);
                 battle.addNextTurnListener(this);
 
                 thread.start();
             }
-        } else sendMessage(new Message<>(Error.BattleAlreadyStart), session);
+        } else if (player.isInBattle()) throw new BattleAlreadyStartException();
+        else throw new IllegalArgumentException();
     }
 
     @Override

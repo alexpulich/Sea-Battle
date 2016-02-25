@@ -9,7 +9,7 @@ public class FirstField implements Field {
     private ArrayList<Ship> ships = new ArrayList<>();
     private int numberOfDestroyedDecks = 0;
     private HashSet<Coordinates> shots = new HashSet<>();
-    private static HashSet<FieldChangesListener> listeners = new HashSet<>();
+    private HashSet<FieldChangesListener> listeners = new HashSet<>();
 
     FirstField(ArrayList<Ship> ships) {
         this.ships = ships;
@@ -111,11 +111,18 @@ public class FirstField implements Field {
     @Override
     public String toString() {
         Cell[][] currentField = getCurrentConditions();
-        return currentField.toString();
+        StringBuilder result = new StringBuilder();
+        for (int i = 0; i < 10; i++) {
+            for (int j = 0; j < 10; j++)
+                result.append(currentField[i][j]);
+            result.append("\n");
+        }
+
+        return result.toString();
     }
 
     @Override
     public boolean equals(Object obj) {
-        return this.toString().equals(toString());
+        return obj instanceof FirstField && this.toString().equals(toString());
     }
 }

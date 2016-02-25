@@ -9,6 +9,7 @@ public enum Notice {
     ExpectedField,
     ExpectedAddShip,
     ExpectedRemoveShip,
+    ExpectedShipMovement,
     ShipAdded,
     ShipRemoved
 }
