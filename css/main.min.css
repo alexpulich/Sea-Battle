@@ -331,3 +331,6 @@ body {
   width: 30px;
   height: 30px;
   z-index: 999; }
+
+.ship-animation {
+  transition: top 1s ease, left 1s ease; }
