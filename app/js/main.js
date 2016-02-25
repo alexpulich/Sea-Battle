@@ -141,7 +141,7 @@ var shipsModule = (function() {
       }
       ship.orientation = (ship.orientation == _HORIZONTAL) ? _VERTICAL : _HORIZONTAL; //меняет параметр ориентации корабля
       _tempMoveCoords.newPlace = _getShipCoords(ship);
-      gameModule.changeCoords(ship, _tempMoveCoords);
+      gameModule.changeCoords("MoveShip", ship, _tempMoveCoords);
 
       // gameModule.changeCoords(ship, "RemoveShip"); //отправляет все координаты корабля на сервер с пометкой RemoveShip
       // ship.orientation = (ship.orientation == _HORIZONTAL) ? _VERTICAL : _HORIZONTAL; //меняет параметр ориентации корабля
@@ -181,11 +181,14 @@ var dragAndDrop = (function() {
       "y": 10
     },
     ship = null,
-    _tempStartPos = null;
     _tempMoveCoords = {
       "oldPlace": null,
       "newPlace": null
-    }
+    },
+    _tempStartCoords = {
+      x: 10,
+      y: 10
+    };
 
   //установка слушателей событий и подключение draggable-droppable
   function _setup() {
@@ -231,11 +234,18 @@ var dragAndDrop = (function() {
 
   //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!TODO!
   function _revertShip(prevX, prevY, prevOrientation) {
-    ship.startPos.x = prevX;
-    ship.startPos.y = prevY;
-    ship.orientation = prevOrientation;
-    shipsModule.rotateShip(ship);
-    shipsModule.setShipPosOnField(ship);
+    ship.startPos.x = 10;
+    ship.startPos.y = 10;
+    var originalPos = ship.block.data('ui-draggable').originalPosition;
+    var baseCoords = ship.block.parent().offset();
+    var posTo = {
+      left: baseCoords.left + originalPos.left,
+      top: baseCoords.top + originalPos.top
+    };
+    ship.block.offset(posTo);
+    // ship.orientation = prevOrientation;
+    // shipsModule.rotateShip(ship);
+    // shipsModule.setShipPosOnField(ship);
   }
 
   /*
@@ -253,14 +263,15 @@ var dragAndDrop = (function() {
     };
 
     ship = shipsModule.getShipById($(this).attr('id'));
-    _tempStartPos = ship.startPos;
-
+    ship.block.removeClass('ship-animation');
     var coords = shipsModule.getShipCoords(ship);
+    _tempStartCoords.x = ship.startPos.x;
+    _tempStartCoords.y = ship.startPos.y
+    if (_tempStartCoords.x!= 10 && _tempStartCoords.y != 10) {
+      _tempMoveCoords.oldPlace = coords;
+      _tempMoveCoords.newPlace = null;
+    }
 
-    _tempMoveCoords.oldPlace = coords;
-    _tempMoveCoords.newPlace = null;
-
-    // gameModule.changeCoords(ship, "RemoveShip");
   }
 
   /*
@@ -271,15 +282,20 @@ var dragAndDrop = (function() {
   */
   function _stopDragging(event, ui) {
     ship = shipsModule.getShipById($(this).attr('id'));
-    var coords = shipsModule.getShipCoords(ship);
-    _tempMoveCoords.newPlace = coords;
-    gameModule.changeCoords(ship, _tempMoveCoords);
+    ship.block.addClass('ship-animation');
+    if (_tempStartCoords.x != 10 && _tempStartCoords.y != 10) {
+      var coords = shipsModule.getShipCoords(ship);
+      _tempMoveCoords.newPlace = coords;
+      gameModule.changeCoords("MoveShip", ship, _tempMoveCoords);
+    } else {
+      gameModule.changeCoords("AddShip", ship);
+    }
   }
 
 
   //Сохраняем у корабля его начальную позицию
   function _dropShip(event, ui) {
-    _setShipStartPos($(this));
+      _setShipStartPos($(this));
   }
 
   //Сохраняем кораблю его начальные координаты
@@ -296,7 +312,8 @@ var dragAndDrop = (function() {
   //Получаем корабль и вызываем поворот блока
   function _rotateShip() {
     ship = shipsModule.getShipById($(this).attr('id'));
-    shipsModule.rotateShip(ship, "user");
+    if (ship.startPos.x != 10 && ship.startPos.y != 10)
+      shipsModule.rotateShip(ship, "user");
   }
 
   return {
@@ -317,9 +334,9 @@ var gameModule = (function() {
     _msg = "",
     _socket = null,
     _lastShot = null,
-    // _lastRemoveShipCoords = null,
-    // _lastAddShipCoords = null,
-    // _lastOrientation = null,
+    _lastRemoveShipCoords = null,
+    _lastAddShipCoords = null,
+    _lastOrientation = null,
     _movingCoords = null,
     _loader = null,
     _currentShip = null;
@@ -328,11 +345,9 @@ var gameModule = (function() {
   function _setupListeners() {
     $('#bot').on('click', function() {
       _initGame(_BOTMODE);
-      dragAndDrop.enableDragAndDrop(true);
     });
     $('#search').on('click', function() {
       _initGame(_PLAYERMODE);
-      dragAndDrop.enableDragAndDrop(true);
     })
     $(window).on('unload', _closeSocket);
     $('#enemy .game-field-cell').on('click', _shotClickHandler)
@@ -345,10 +360,6 @@ var gameModule = (function() {
     _closeSocket();
     _clearField();
     _setupSocket(mode);
-    $('#search').addClass('inactive');
-    $('#bot').addClass('inactive');
-    $('#random').removeClass('inactive');
-    $('#confirm').removeClass('inactive');
   }
 
   //очищаем поле
@@ -476,14 +487,14 @@ var gameModule = (function() {
       case "ExpectedCoordinates":
         _sendShotCoords();
         break;
-      // case "ExpectedRemoveShip":
-        // _sendShipCoords("remove");
-        // break;
-      // case "ExpectedAddShip":
-        // _sendShipCoords("add");
-        // break;
+      case "ExpectedRemoveShip":
+        _sendShipCoords("remove");
+        break;
+      case "ExpectedAddShip":
+        _sendShipCoords("add");
+        break;
       case "ExpectedShipMovement":
-        _sendShipCoords();
+        _sendShipCoords("move");
         break;
       case "ShipAdded":
         break;
@@ -513,6 +524,7 @@ var gameModule = (function() {
       case "IncorrectShip":
         var note = notyModule.makeNoty("Неккоректное расположение корабля!", "warning", 1000);
         // dragAndDrop.revertShip(_lastRemoveShipCoords[0].x,_lastRemoveShipCoords[0].y, _lastOrientation);
+        dragAndDrop.revertShip();
         // Костыль при перевороте корабля
         // _lastAddShipCoords = _lastRemoveShipCoords;
         // _send("AddShip")
@@ -570,6 +582,13 @@ var gameModule = (function() {
     }
   }
 
+  function _isSocketAlive() {
+    if (_socket.readyState === 1)
+      return true;
+    else
+      return false;
+  }
+
   //Подключение сокета и настройка его событий
   function _setupSocket(mode) {
     _socket = new WebSocket("ws://" + _IP + ":" + _PORT + "/" + mode);
@@ -584,6 +603,11 @@ var gameModule = (function() {
           'imgLoader': "http://www.animatedimages.org/data/media/271/animated-ship-image-0046.gif"
         });
       }
+      var noty = notyModule.makeNoty("Соединение установлено", "success", 1000);
+      $('#search').addClass('inactive');
+      $('#bot').addClass('inactive');
+      $('#random').removeClass('inactive');
+      $('#confirm').removeClass('inactive');
     }
     _socket.onerror = function(error) {
       console.log("ERROR: " + error.data);
@@ -605,10 +629,10 @@ var gameModule = (function() {
           _battleResultHandler(msg.data);
           break;
         case "FieldChanges":
-          console.log(msg.data);
           _fieldChangesHandler(msg.data);
           break;
         case "HashSet":
+          console.log(msg.data);
           _movingShipsHandler(msg.data);
           break;
         default:
@@ -616,7 +640,8 @@ var gameModule = (function() {
       }
     }
     _socket.onclose = function(event) {
-      _loader.destroy();
+      if (_loader)
+        _loader.destroy();
       var messageType = null;
       if (event.wasClean) {
         messageType = "warning";
@@ -633,7 +658,7 @@ var gameModule = (function() {
 
   //отправка запроса
   function _send(msg) {
-    if (!_socket || (_socket.readyState == 3)) {
+    if (!_socket || (!_isSocketAlive())) {
       var note = notyModule.makeNoty("Соединение не установлено!", "error", 1000);
       return;
     }
@@ -648,41 +673,41 @@ var gameModule = (function() {
   }
 
   //отправка координат корабля
-  // function _sendShipCoords(mode) {
-  function _sendShipCoords() {
-    _send(JSON.stringify(_movingCoords));
-    // if (mode === "remove") {
-    //   _send(JSON.stringify(_lastRemoveShipCoords));
-    // } else if (mode === "add") {
-    //   _send(JSON.stringify(_lastAddShipCoords));
-    // }
+  function _sendShipCoords(mode) {
+    if (mode === "move") {
+      _send(JSON.stringify(_movingCoords));
+    } else if (mode === "remove") {
+      _send(JSON.stringify(_lastRemoveShipCoords));
+    } else if (mode === "add") {
+      _send(JSON.stringify(_lastAddShipCoords));
+    }
   }
 
   //Отправка изменённых координат
   // function _changingCoordsHandler(ship, mode) {
-  function _changingCoordsHandler(ship, coords) {
-    _movingCoords = coords;
-    _currentShip = ship;
-    _send("MoveShip")
-    // if (mode === "RemoveShip") {
-    //   _lastRemoveShipCoords = shipsModule.getShipCoords(ship);
-    //   _lastOrientation = ship.orientation;
-    //   for (var i = 0; i < _lastRemoveShipCoords.length; i++) {
-    //     var x = _lastRemoveShipCoords[i].x,
-    //       y = _lastRemoveShipCoords[i].y;
-    //     var row = $('#player .game-field-row').eq(x),
-    //       cell = row.find('.game-field-cell').eq(y);
-    //   }
-    // } else if (mode === "AddShip") {
-    //   _lastAddShipCoords = shipsModule.getShipCoords(ship);
-    //   for (var i = 0; i < _lastAddShipCoords.length; i++) {
-    //     var x = _lastAddShipCoords[i].x,
-    //       y = _lastAddShipCoords[i].y;
-    //     var row = $('#player .game-field-row').eq(x),
-    //       cell = row.find('.game-field-cell').eq(y);
-    //   }
-    // }
-    // _send(mode);
+  function _changingCoordsHandler(mode, ship, coords) {
+    if (mode === "MoveShip") {
+      _movingCoords = coords;
+      _currentShip = ship;
+    } else if (mode === "RemoveShip") {
+      _lastRemoveShipCoords = shipsModule.getShipCoords(ship);
+      _lastOrientation = ship.orientation;
+      for (var i = 0; i < _lastRemoveShipCoords.length; i++) {
+        var x = _lastRemoveShipCoords[i].x,
+          y = _lastRemoveShipCoords[i].y;
+        var row = $('#player .game-field-row').eq(x),
+          cell = row.find('.game-field-cell').eq(y);
+      }
+    } else if (mode === "AddShip") {
+      _lastAddShipCoords = shipsModule.getShipCoords(ship);
+      for (var i = 0; i < _lastAddShipCoords.length; i++) {
+        var x = _lastAddShipCoords[i].x,
+          y = _lastAddShipCoords[i].y;
+        var row = $('#player .game-field-row').eq(x),
+          cell = row.find('.game-field-cell').eq(y);
+      }
+    }
+    _send(mode);
     
   }
 
