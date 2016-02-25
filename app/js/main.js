@@ -1,4 +1,3 @@
-//Fullscreen scrolling midule
 var scroll = (function() {
     var _fullpageElem = $('#fullpage'),
 
@@ -14,114 +13,237 @@ var scroll = (function() {
     }
 })();
 
+var shipsModule = (function() {
+    var _ships = [],
+        _VERTICAL = "vertical",
+        _HORIZONTAL = "horizontal";
+
+    function _initShips() {
+        for (var i = 1; i < 5; i++) {
+            var ship = {
+                "shipLength": 1,
+                "startPos": {"x": 10, "y": 10},
+                "orientation": _HORIZONTAL,
+                "block": $('#ship1' + i)
+            };
+            _ships.push(ship);
+        }
+        for (var i = 1; i < 4; i++) {
+            var ship = {
+                "shipLength": 2,
+                "startPos": {"x": 10, "y": 10},
+                "orientation": _HORIZONTAL,
+                "block": $('#ship2' + i)
+            };
+            _ships.push(ship);
+        }
+        for (var i = 1; i < 3; i++) {
+            var ship = {
+                "shipLength": 3,
+                "startPos": {"x": 10, "y": 10},
+                "orientation": _HORIZONTAL,
+                "block": $('#ship3' + i)
+            };
+            _ships.push(ship);
+        }
+        var ship = {
+            "shipLength": 4,
+            "startPos": {"x": 10, "y": 10},
+            "orientation": _HORIZONTAL,
+            "block": $('#ship41')
+        };
+        _ships.push(ship);
+    }
+
+    function _getShipCoords(ship) {
+        var coordsArray = [],
+            x = ship.startPos.x,
+            y = ship.startPos.y;
+
+        if (ship.orientation === _HORIZONTAL) {
+            for (var i = 0; i < ship.shipLength; i++) {
+                coordsArray.push({
+                    "x": x,
+                    "y": y++ 
+                });
+            }
+        } else {
+            for (var i = 0; i < ship.shipLength; i++) {
+                coordsArray.push({
+                    "x": x++,
+                    "y": y 
+                });
+            }
+        }
+        return coordsArray;
+    }
+
+    function _getShipById(id) {
+        for (var i = 0; i < 10; i++) {
+            if (_ships[i].block.attr('id') == id) {
+                return _ships[i];
+            }
+        }
+    }
+
+    function _setShipPosOnField(ship) {
+        var tablePos = $($('.game-field-table')[0]).offset();
+        ship.block.offset({
+            top: tablePos.top + 1 + ship.startPos.x * 30,
+            left: tablePos.left + 1 + ship.startPos.y * 30,
+        });
+    }
+
+    function _rotateShip(ship, mode) {
+        if (mode === "user") {
+            ship.orientation = (ship.orientation == _HORIZONTAL) ? _VERTICAL : _HORIZONTAL;
+            gameModule.changeCoords(ship, "RemoveShip");
+        } 
+
+        var shipW = ship.block.width(),
+            shipH = ship.block.height();
+
+        if (ship.orientation == _VERTICAL && (shipH < shipW)) {
+            ship.block.width(shipH);
+            ship.block.height(shipW);
+        } else if (ship.orientation == _HORIZONTAL && (shipH > shipW)) {
+            ship.block.width(shipH);
+            ship.block.height(shipW);
+        }
+        if (mode === "user") {
+            gameModule.changeCoords(ship, "AddShip");
+        }
+    }
+
+    return {
+        init: _initShips,
+        getShipById: _getShipById,
+        rotateShip: _rotateShip,
+        setShipPosOnField: _setShipPosOnField,
+        getShipCoords: _getShipCoords
+    }
+
+})();
+
+var dragAndDrop = (function() {
+
+    function _setup() {
+        _setDragAndDrop();
+        $('.ship').on('click', _rotateShip);
+        $('#player .game-field-inner').on('drop', _dropShip);
+        $('#player .game-field-inner').on('dropout', _dropOutShip);
+        $('.ship').on('dragstop', _stopDragging);
+        $('.ship').on('dragstart', _startDragging);
+    }
+
+    function _setDragAndDrop() {
+        $('#player .game-field-inner').droppable({
+            scope: 'drop',
+            tolerance: 'touch',
+        });
+
+        $('.ship').draggable({
+            scope: 'drop',
+            containment: "body", 
+            revert: "invalid",
+            cursor: 'move',
+            opacity: 0.8,
+            snap: '.game-field-cell',
+            snapMode: "inner",
+        });
+    }
+
+    function _stopDragging(event, ui) {
+        var ship = shipsModule.getShipById($(this).attr('id')),
+            coords = shipsModule.getShipCoords(ship);
+        gameModule.changeCoords(ship, "AddShip");
+    }
+
+    function _startDragging(event, ui) {
+        var ship = shipsModule.getShipById($(this).attr('id')),
+            coords = shipsModule.getShipCoords(ship);
+        gameModule.changeCoords(ship, "RemoveShip");
+    }
+
+    function _dropShip(event, ui) {
+        $(this).removeClass('empty');
+        $(this).addClass('busy');
+        $(this).closest('.game-field-cell').addClass('ship-in');
+        _getCoords($(this));
+    }
+
+    function _dropOutShip(event, ui) {
+        $(this).removeClass('busy');
+        $(this).closest('.game-field-cell').removeClass('ship-in');
+        $(this).addClass('empty');
+    }
+
+    function _getCoords(elem) {
+        var _x = $(elem).closest('.game-field-cell').index();
+        var _y = $(elem).closest('.game-field-row').index();
+        console.log("{" + _x + ";" + _y + "}");
+    }
+
+    function _rotateShip() {
+        var ship = shipsModule.getShipById($(this).attr('id'));
+        // var shipW = $(this).width(),
+        //     shipH = $(this).height();
+
+        // $(this).width(shipH);
+        // $(this).height(shipW)  
+        // _getCoords($(this));
+        shipsModule.rotateShip(ship, "user");
+    }
 
 
-// var dragAndDrop = (function() {
-
-//     //Setup module
-//     function _setup() {
-//         _setDragAndDrop();
-//         $('.ship').on('click', _rotateShip);
-//         $('.game-field-inner').on('drop', _dropShip);
-//         $('.game-field-inner').on('dropout', _dropOutShip);
-//     }
-
-//     //Setting jQuery-UI droppable and draggable to
-//     //field and ships
-//     function _setDragAndDrop() {
-//         $('.game-field-inner').droppable({
-//             scope: 'drop',
-//             tolerance: 'touch',
-//         });
-
-//         $('.ship').draggable({
-//             scope: 'drop',
-//             containment: "body", 
-//             revert: "invalid",
-//             cursor: 'move',
-//             opacity: 0.8,
-//             snap: '.game-field-cell',
-//             snapMode: "inner",
-//         });
-//     }
-
-//     //Marking a cell with a ship's part as busy
-//     function _dropShip(event, ui) {
-//         $(this).removeClass('empty');
-//         $(this).addClass('busy');
-//         _getCoords($(this));
-//     }
-
-//     //Marking a cell without a ship's part as empty
-//     function _dropOutShip(event, ui) {
-//         $(this).removeClass('busy');
-//         $(this).addClass('empty');
-//     }
-
-//     //Getting a set of ship's coords 
-//     function _getCoords(elem) {
-//         var _x = $(elem).closest('.game-field-cell').index();
-//         var _y = $(elem).closest('.game-field-row').index();
-//         console.log("{" + _x + ";" + _y + "}");
-//     }
-
-//     //Changing orientation of a ship on clicking
-//     function _rotateShip() {
-//         var shipW = $(this).width(),
-//             shipH = $(this).height();
-
-//         $(this).width(shipH);
-//         $(this).height(shipW)  
-//         _getCoords($(this));
-//     }
+    return {
+        init: _setup,
+    }
+})();
 
 
-//     return {
-//         init: _setup,
-//         getCoords : _getCoords
-//     }
-// })();
-
-
-var gamebot = (function() {
+var gameModule = (function() {
     var _BOTMODE = "pvbserver",
         _PLAYERMODE = 'pvpserver',
         _IP = "46.32.76.190",
         _PORT = "8000",
+        _VERTICAL = "vertical",
+        _HORIZONTAL = "horizontal",
         _msg = "",
         _socket = null,
         _lastShot = null,
+        _lastShipCoords = null,
         _loader = null;
+
 
     function _setupListeners() {
         $('#bot').on('click', function() {
-            _closeSocket();
-            _clearField();
-            _setupSocket(_BOTMODE);
-            $(this).addClass('inactive');
-            $('#search').addClass('inactive');
-            $('#random').removeClass('inactive');
-            $('#confirm').removeClass('inactive');
+            _initGame(_BOTMODE);
         });
         $('#search').on('click', function() {
-            _closeSocket();
-            _clearField();
-            _setupSocket(_PLAYERMODE);
-            $(this).addClass('inactive');
-            $('#bot').addClass('inactive');
-            $('#random').removeClass('inactive');
-            $('#confirm').removeClass('inactive');
+            _initGame(_PLAYERMODE);
         })
         $(window).on('unload', _closeSocket);
-
         $('#enemy .game-field-cell').on('click', _shotClickHandler)
         $('#random').on('click', _random);
         $('#confirm').on('click', _confirm);
     }
 
+    function _initGame(mode) {
+        _closeSocket();
+        _clearField();
+        _setupSocket(mode);
+        $('#search').addClass('inactive');
+        $('#bot').addClass('inactive');
+        $('#random').removeClass('inactive');
+        $('#confirm').removeClass('inactive');
+    }
+
     function _clearField() {
         $('.ship-in').removeClass('ship-in');
-        $('.game-field-cell').removeClass('busy empty hit <miss></miss>');
+        $('.game-field-cell').removeClass('hit miss');
+        $('.game-field-inner').removeClass('busy');
+        $('.game-field-inner').addClass('empty');
     }
 
     function _shotClickHandler() {
@@ -137,22 +259,40 @@ var gamebot = (function() {
     }
 
     function _placeShips(data) {
-        var rows = $($('.game-field-table')[0]).find($('tr')),
-            field = data;
+        _clearField();
+        console.log(data);
+        var rows = $('#player').find($('tr'));
 
-        for (var i = 0; i < 10; i++) {
-            for (var j = 0; j < 10; j++) {
-                var cell = rows.eq(i).children().eq(j).children('.game-field-inner');
-                if (field[i][j] == 'Void') {
-                    cell.removeClass('busy');
-                    cell.closest('.game-field-cell').removeClass('ship-in');
-                    cell.addClass('empty');
-                } else if (field[i][j] == 'Ship') {
-                    cell.removeClass('empty');
-                    cell.addClass('busy');
-                    cell.closest('.game-field-cell').addClass('ship-in');
-                }
+        var shipsCounter = {
+            "1" : 1,
+            "2" : 1,
+            "3" : 1,
+            "4" : 1
+        }
+
+        for (var i = 0; i < data.length; i++) {
+            shipLength = data[i].length;
+            
+            id = 'ship' + shipLength + (shipsCounter[shipLength]++);
+            ship = shipsModule.getShipById(id);
+            ship.startPos.x = 10;
+            ship.startPos.y = 10;
+
+            for (var j = 0; j < shipLength; j++) {
+                var cell = rows.eq(data[i][j].x).children().eq(data[i][j].y).children('.game-field-inner');
+                cell.addClass('busy');
+                cell.removeClass('empty');
+                cell.closest('.game-field-cell').addClass('ship-in');
+                ship.startPos.x = Math.min(ship.startPos.x, data[i][j].x);
+                ship.startPos.y = Math.min(ship.startPos.y, data[i][j].y);
             }
+
+            if (ship.shipLength > 1) {
+                ship.orientation = (data[i][0].x === data[i][1].x) ? _HORIZONTAL : _VERTICAL; 
+                shipsModule.rotateShip(ship, "server");
+            }
+            
+            shipsModule.setShipPosOnField(ship);
         }
     }
 
@@ -181,8 +321,6 @@ var gamebot = (function() {
             alert("You won!");
         else if (result === "Lose")
             alert("You lost");
-        else
-            alert("WTF? We got neither WIN nor LOSE!");
     }
 
     function _noticeHandler(notice) {
@@ -194,6 +332,9 @@ var gamebot = (function() {
                 break;
             case "ExpectedCoordinates":
                 _shot();
+                break;
+            case "ExpectedShip":
+                _sendShipCoords()
                 break;
             default:
                 break;
@@ -207,7 +348,7 @@ var gamebot = (function() {
         } else if (data.fieldStatus === "Second") {
             field = $('#enemy');
         } else {
-            alert("what field did you mean?");
+            console.log(data.fieldStatus + " - this is incorrect type of field");
         }
         if (data.misses) {
             for (var i = 0; i < data.misses.length; i++) {
@@ -249,7 +390,7 @@ var gamebot = (function() {
             msg = JSON.parse(event.data);
             console.log("Got a message with type: " + msg.type + "; data: " + msg.data);
             switch (msg.type) {
-                case "Cell[][]":
+                case "ArrayList":
                     _placeShips(msg.data);
                     break;
                 case "Notice":
@@ -288,8 +429,18 @@ var gamebot = (function() {
             _socket.close();
     }
 
+    function _sendShipCoords() {
+        _send(JSON.stringify(_lastShipCoords));
+    }
+
+    function _changingCoordsHandler(ship, mode) {
+        _lastShipCoords = shipsModule.getShipCoords(ship);
+        _send(mode);
+    }
+
     return {
-        init: _setupListeners
+        init: _setupListeners,
+        changeCoords: _changingCoordsHandler
     }
 })();
 
@@ -301,9 +452,11 @@ $(document).ready(function() {
     if ($.find("#fullpage").length > 0)
         scroll.init();
 
-    // if($.find('.ship').length > 0) {
-    // dragAndDrop.init();
-    // }
+    shipsModule.init();
+
+    if($.find('.ship').length > 0) {
+        dragAndDrop.init();
+    }
     if ($.find('.game-section').length > 0)
-        gamebot.init();
+        gameModule.init();
 });
