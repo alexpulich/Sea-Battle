@@ -2,7 +2,6 @@ package ru.ifmo.practice.seabattle.battle;
 
 import ru.ifmo.practice.seabattle.exceptions.BattleNotFinishedException;
 import ru.ifmo.practice.seabattle.exceptions.IllegalNumberOfShipException;
-import ru.ifmo.practice.seabattle.server.Log;
 
 import java.util.HashSet;
 
@@ -32,8 +31,6 @@ public class Battle implements Runnable {
     }
 
     public void start() throws IllegalNumberOfShipException {
-        Log.getInstance().sendMessage(this.getClass(), "Битва начата");
-
         Gamer attacker = firstGamer;
         Gamer defender = secondGamer;
 
@@ -41,7 +38,11 @@ public class Battle implements Runnable {
             fireNextTurnListeners(attacker);
             Coordinates shot = attacker.getShot();
             HashSet<Coordinates> shotResult;
-            shotResult = defender.getFirstField().shot(shot);
+            try {
+                shotResult = defender.getFirstField().shot(shot);
+            } catch (NullPointerException e) {
+                return;
+            }
             attacker.setLastRoundResult(shotResult);
 
             if (defender.getFirstField().getNumberOfDestroyedDecks() == 20) {
@@ -54,7 +55,6 @@ public class Battle implements Runnable {
             }
         } while (winner == null);
 
-        Log.getInstance().sendMessage(this.getClass(), "Битва завершена");
         fireBattleEndedListeners();
     }
 

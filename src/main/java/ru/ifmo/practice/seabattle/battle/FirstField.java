@@ -9,12 +9,13 @@ public class FirstField implements Field {
     private ArrayList<Ship> ships = new ArrayList<>();
     private int numberOfDestroyedDecks = 0;
     private HashSet<Coordinates> shots = new HashSet<>();
-    private static HashSet<FieldChangesListener> listeners = new HashSet<>();
+    private HashSet<FieldChangesListener> listeners = new HashSet<>();
 
     FirstField(ArrayList<Ship> ships) {
         this.ships = ships;
     }
 
+    @Override
     public Cell[][] getCurrentConditions() {
         Cell[][] result = new Cell[10][10];
 
@@ -39,6 +40,20 @@ public class FirstField implements Field {
                 result[i][j] = cell;
             }
         }
+
+        return result;
+    }
+
+    public ArrayList<HashSet<Coordinates>> getCurrentShips() {
+        ArrayList<HashSet<Coordinates>> result = new ArrayList<>();
+
+        ships.forEach((ship) -> {
+            HashSet<Coordinates> decks = new HashSet<>();
+            decks.addAll(ship.getDecks());
+            decks.addAll(ship.getDestroyedDecks());
+
+            result.add(decks);
+        });
 
         return result;
     }
@@ -79,10 +94,12 @@ public class FirstField implements Field {
         }
     }
 
+    @Override
     public void addChangesListener(FieldChangesListener listener) {
         listeners.add(listener);
     }
 
+    @Override
     public boolean removeChangesListener(FieldChangesListener listener) {
         return listeners.remove(listener);
     }
@@ -94,11 +111,18 @@ public class FirstField implements Field {
     @Override
     public String toString() {
         Cell[][] currentField = getCurrentConditions();
-        return currentField.toString();
+        StringBuilder result = new StringBuilder();
+        for (int i = 0; i < 10; i++) {
+            for (int j = 0; j < 10; j++)
+                result.append(currentField[i][j]);
+            result.append("\n");
+        }
+
+        return result.toString();
     }
 
     @Override
     public boolean equals(Object obj) {
-        return this.toString().equals(toString());
+        return obj instanceof FirstField && this.toString().equals(toString());
     }
 }

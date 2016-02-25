@@ -12,6 +12,7 @@ hs_err_pid*
 # Intellij Idea files
 .idea
 *.iml
+*.lst
 
 node_modules
 app/bower
