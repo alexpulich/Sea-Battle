@@ -6,5 +6,6 @@ public enum Command {
     StartBattle,
     Shot,
     AddShip,
-    RemoveShip
+    RemoveShip,
+    MoveShip
 }
