@@ -499,8 +499,10 @@ var gameModule = (function() {
           timeout: "1000"
         });
         dragAndDrop.revertShip(_lastRemoveShipCoords[0].x,_lastRemoveShipCoords[0].y, _lastOrientation);
-        _lastAddShipCoords = _lastRemoveShipCoords;
-        _send("AddShip")
+        // Костыль при перевороте корабля
+        // _lastAddShipCoords = _lastRemoveShipCoords;
+        // _send("AddShip")
+        // Конец костыля
         break;
       default:
         console.log("Not handled error: " + error);
@@ -509,6 +511,8 @@ var gameModule = (function() {
 
   //Обработчик изменения полей: помечаем промах/попадание, добавляем огонь
   function _fieldChangesHandler(data) {
+    console.log("FIELDCHANGESHANDLER");
+    console.log(data);
     var field = null;
     if (data.fieldStatus === "First") {
       field = $('#player');
@@ -525,6 +529,7 @@ var gameModule = (function() {
       }
     }
     if (data.hit) {
+      console.log("THERE IS A HIT!");
       var x = data.hit.x;
       var y = data.hit.y;
       _setFieldStatus(x, y, "hit")
@@ -537,6 +542,7 @@ var gameModule = (function() {
           top: tablePos.top + 1 + x * 30,
           left: tablePos.left + 1 + y * 30,
         });
+        console.log("HAVE CREATED FIRE BLOCK!");
       }
     }
 
