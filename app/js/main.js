@@ -608,6 +608,7 @@ var gameModule = (function() {
       $('#bot').addClass('inactive');
       $('#random').removeClass('inactive');
       $('#confirm').removeClass('inactive');
+      dragAndDrop.enableDragAndDrop(true);
     }
     _socket.onerror = function(error) {
       console.log("ERROR: " + error.data);
