@@ -376,6 +376,14 @@ body {
 .ship-3 {
   width: 90px;
   top: 70px;
+
+  &:nth-child(8) {
+   left: 0; 
+  }
+
+  &:nth-child(9) {
+    left: 95px;
+  }
 }
 
 .ship-4 {
