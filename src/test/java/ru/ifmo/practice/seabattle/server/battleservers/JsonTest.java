@@ -1,14 +1,19 @@
-package ru.ifmo.practice.seabattle.server;
+package ru.ifmo.practice.seabattle.server.battleservers;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import ru.ifmo.practice.seabattle.Console;
 import ru.ifmo.practice.seabattle.battle.*;
+import ru.ifmo.practice.seabattle.server.Message;
+import ru.ifmo.practice.seabattle.server.Notice;
 
 import java.util.HashSet;
 
 public class JsonTest implements FieldChangesListener {
     public static void main(String[] args) {
+        HashSet<Coordinates> oldShip = new HashSet<>();
+        HashSet<Coordinates> newShip = new HashSet<>();
+
         FirstFieldBuilder firstFieldBuilder = new FirstFieldBuilder();
         HashSet<Coordinates> ship = new HashSet<>();
 
@@ -16,6 +21,7 @@ public class JsonTest implements FieldChangesListener {
         ship.add(new Coordinates(1, 1));
         ship.add(new Coordinates(1, 2));
         firstFieldBuilder.addShip(ship);
+        oldShip.addAll(ship);
         ship = new HashSet<>();
 
         ship.add(new Coordinates(0, 5));
@@ -51,6 +57,7 @@ public class JsonTest implements FieldChangesListener {
         ship.add(new Coordinates(8, 5));
         ship.add(new Coordinates(9, 5));
         firstFieldBuilder.addShip(ship);
+        newShip.addAll(ship);
         ship = new HashSet<>();
 
         ship.add(new Coordinates(8, 2));
@@ -64,6 +71,10 @@ public class JsonTest implements FieldChangesListener {
         FirstField field = firstFieldBuilder.create();
 
         Gson gson = new GsonBuilder().serializeNulls().create();
+
+        ShipMovement movement = new ShipMovement(oldShip, newShip);
+        Console.outputMessage(gson.toJson(movement));
+        Console.outputMessage(gson.toJson(new Message<>(movement.getNewPlace())));
 
         Console.outputMessage(gson.toJson(field.getCurrentConditions()));
         Console.outputMessage(gson.toJson(new Message<>(field.getCurrentConditions())));

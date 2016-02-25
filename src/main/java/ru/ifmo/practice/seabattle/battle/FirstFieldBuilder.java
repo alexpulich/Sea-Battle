@@ -12,7 +12,9 @@ public class FirstFieldBuilder {
 
     public FirstField create() throws IllegalNumberOfShipException {
         if (ships.size() < 10) throw new IllegalNumberOfShipException("Поле еще не заполнено");
-        return new FirstField(ships);
+        ArrayList<Ship> field = new ArrayList<>();
+        field.addAll(ships);
+        return new FirstField(field);
     }
 
     public void placeShipsRandom() {
@@ -49,15 +51,18 @@ public class FirstFieldBuilder {
 
     public void addShip(HashSet<Coordinates> shipCoordinates) throws IllegalNumberOfShipException {
         if (ships.size() == 10) throw new IllegalNumberOfShipException("Поле уже заполнено");
-
-        if (isPlaceOccuped(shipCoordinates)) {
-            throw new IllegalArgumentException("Место уже занято");
-        }
-
+        if (isPlaceOccuped(shipCoordinates)) throw new IllegalArgumentException("Место уже занято");
         if (numberOfShipsForDecks[shipCoordinates.size()] ==
                 5 - shipCoordinates.size())
             throw new IllegalArgumentException("Количество " +
                     shipCoordinates.size() + " палубных кораблей превышено");
+
+        for (Coordinates deck : shipCoordinates) {
+            if (deck.getY() < 0 || deck.getY() > 9
+                    || deck.getX() < 0 || deck.getX() > 9) {
+                throw new IllegalArgumentException("Корабль выходит за границы поля");
+            }
+        }
 
         ships.add(new Ship(shipCoordinates));
         numberOfShipsForDecks[shipCoordinates.size()]++;

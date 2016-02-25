@@ -1,9 +1,6 @@
 package ru.ifmo.practice.seabattle.battle;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public class SecondField implements Field {
     private Cell[][] field;
@@ -60,8 +57,6 @@ public class SecondField implements Field {
     }
 
     private void fireChangesListeners(Coordinates hit, HashSet<Coordinates> misses) {
-        listeners.forEach((listener) -> {
-            listener.fieldChanged(this, hit, misses);
-        });
+        listeners.forEach(listener -> listener.fieldChanged(this, hit, misses));
     }
 }
