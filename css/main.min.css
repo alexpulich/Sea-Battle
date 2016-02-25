@@ -284,6 +284,10 @@ body {
 .ship-3 {
   width: 90px;
   top: 70px; }
+  .ship-3:nth-child(8) {
+    left: 0; }
+  .ship-3:nth-child(9) {
+    left: 95px; }
 
 .ship-4 {
   width: 120px;

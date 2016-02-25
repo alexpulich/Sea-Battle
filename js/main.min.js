@@ -188,7 +188,8 @@ var dragAndDrop = (function() {
     _tempStartCoords = {
       x: 10,
       y: 10
-    };
+    },
+    droppedCounter = 0;
 
   //установка слушателей событий и подключение draggable-droppable
   function _setup() {
@@ -233,7 +234,8 @@ var dragAndDrop = (function() {
   }
 
   //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!TODO!
-  function _revertShip(prevX, prevY, prevOrientation) {
+  // function _revertShip(prevX, prevY, prevOrientation) {
+  function _revertShip() {
     ship.startPos.x = 10;
     ship.startPos.y = 10;
     var originalPos = ship.block.data('ui-draggable').originalPosition;
@@ -262,6 +264,8 @@ var dragAndDrop = (function() {
       "y": 10
     };
 
+    droppedCounter = 0;
+
     ship = shipsModule.getShipById($(this).attr('id'));
     ship.block.removeClass('ship-animation');
     var coords = shipsModule.getShipCoords(ship);
@@ -288,7 +292,11 @@ var dragAndDrop = (function() {
       _tempMoveCoords.newPlace = coords;
       gameModule.changeCoords("MoveShip", ship, _tempMoveCoords);
     } else {
-      gameModule.changeCoords("AddShip", ship);
+      if (droppedCounter == ship.shipLength) {
+        gameModule.changeCoords("AddShip", ship);
+      } else {
+        _revertShip();
+      }
     }
   }
 
@@ -302,7 +310,7 @@ var dragAndDrop = (function() {
   function _setShipStartPos(elem) {
     var _y = $(elem).closest('.game-field-cell').index();
     var _x = $(elem).closest('.game-field-row').index();
-
+    droppedCounter++;
     _tempCoords.x = Math.min(_tempCoords.x, _x);
     _tempCoords.y = Math.min(_tempCoords.y, _y);
     ship.startPos.x = _tempCoords.x;
