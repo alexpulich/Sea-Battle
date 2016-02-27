@@ -1,8 +1,10 @@
-package ru.ifmo.practice.seabattle.server;
+package ru.ifmo.practice.seabattle.server.loginserver;
 
 import com.google.gson.Gson;
 import ru.ifmo.practice.seabattle.db.DAOFactory;
 import ru.ifmo.practice.seabattle.db.User;
+import ru.ifmo.practice.seabattle.server.Log;
+import ru.ifmo.practice.seabattle.server.Message;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;

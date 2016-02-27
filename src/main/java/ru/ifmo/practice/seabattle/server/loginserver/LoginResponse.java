@@ -1,4 +1,4 @@
-package ru.ifmo.practice.seabattle.server;
+package ru.ifmo.practice.seabattle.server.loginserver;
 
 public class LoginResponse {
     private boolean login;
