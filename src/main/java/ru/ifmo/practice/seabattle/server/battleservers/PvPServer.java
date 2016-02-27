@@ -164,10 +164,12 @@ public class PvPServer extends BattleServer {
             sendMessage(new Message<>(BattleResult.Win), ((Player) winner).getSession());
             sendMessage(new Message<>(BattleResult.Lose), ((Player) loser).getSession());
 
-            int winnerId = BattleResultHandler.UNREGISTRED_ID, loserId = BattleResultHandler.UNREGISTRED_ID;
-            if (((Player) winner).getId() != null) winnerId = ((Player) winner).getId();
-            if (((Player) loser).getId() != null) loserId = ((Player) loser).getId();
-            new BattleResultHandler().handle(winnerId, loserId);
+            if (((Player) winner).getId() != null || ((Player) loser).getId() != null) {
+                int winnerId = BattleResultHandler.UNREGISTRED_ID, loserId = BattleResultHandler.UNREGISTRED_ID;
+                if (((Player) winner).getId() != null) winnerId = ((Player) winner).getId();
+                if (((Player) loser).getId() != null) loserId = ((Player) loser).getId();
+                new BattleResultHandler().handle(winnerId, loserId);
+            }
         } catch (IOException e) {
             e.printStackTrace();
         }

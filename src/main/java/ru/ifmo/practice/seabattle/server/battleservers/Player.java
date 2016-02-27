@@ -10,7 +10,7 @@ import javax.websocket.Session;
 import java.util.HashMap;
 import java.util.HashSet;
 
-class Player implements Gamer {
+class Player implements Gamer, FieldChangesListener {
     private Integer rating;
     private Integer id;
     private String nickName;
@@ -117,7 +117,12 @@ class Player implements Gamer {
     }
 
     public void setSecondField(SecondField secondField) throws BattleAlreadyStartException {
-        if (!isInBattle()) this.secondField = secondField;
+        if (!isInBattle()) {
+            if (secondField != null) secondField.removeChangesListener(this);
+            this.secondField = secondField;
+            if (this.secondField != null)
+                this.secondField.addChangesListener(this);
+        }
         else throw new BattleAlreadyStartException();
     }
 
@@ -177,5 +182,11 @@ class Player implements Gamer {
     protected void finalize() throws Throwable {
         if (session.isOpen()) session.close();
         super.finalize();
+    }
+
+    @Override
+    public void fieldChanged(Field field, Coordinates hit, HashSet<Coordinates> misses) {
+        blackList.add(hit);
+        if (misses != null) misses.forEach(miss -> blackList.add(miss));
     }
 }
