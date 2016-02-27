@@ -9,7 +9,15 @@ public class HibernateUtil {
     private SessionFactory sessionFactory = null;
 
     private static class HibernateUtilHolder {
-        private static HibernateUtil instance = new HibernateUtil();
+        private static HibernateUtil instance;
+
+        static {
+            try {
+                instance = new HibernateUtil();
+            } catch (Exception e){
+                e.printStackTrace();
+            }
+        }
     }
 
     public static HibernateUtil getInstance() {
