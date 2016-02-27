@@ -9,6 +9,7 @@ import ru.ifmo.practice.seabattle.db.Match;
 import ru.ifmo.practice.seabattle.db.User;
 
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
 
 public class UserDAOImpl implements UserDAO {
@@ -99,13 +100,29 @@ public class UserDAOImpl implements UserDAO {
     }
 
     @Override
-    public User login(String email, String password) throws SQLException{
-        return transaction(session -> (User) session.createQuery("from User where email=:email and password=:password")
-                .setString("email", email).setString("password", password).list().get(0));
+    public User login(String email, String password) throws SQLException {
+        return transaction(session -> {
+            Query query = session.createQuery("from User where email=:email and password=:password")
+                    .setString("email", email).setString("password", password);
+            List<User> list = query.list();
+            User user = null;
+            if (list.size() != 0) {
+                user = list.get(0);
+            }
+            return user;
+        });
     }
 
     @Override
     public User getUserByNickname(String nickname) throws SQLException {
-        return transaction(session -> (User) session.createQuery("from User where user_nickname=:nickname").setString("nickname", nickname).list().get(0));
+        return transaction(session -> {
+            Query query = session.createQuery("from User where user_nickname=:nickname").setString("nickname", nickname).list().get(0)
+            List<User> list = query.list();
+            User user = null;
+            if (list.size() != 0) {
+                user = list.get(0);
+            }
+            return user;
+        });
     }
 }
