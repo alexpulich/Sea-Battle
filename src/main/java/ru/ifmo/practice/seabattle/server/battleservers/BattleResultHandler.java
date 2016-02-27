@@ -9,6 +9,7 @@ import java.sql.SQLException;
 
 public class BattleResultHandler {
     public static final int BOT_ID = 1;
+    public static final int UNREGISTRED_ID = 2;
 
     public void handle(int winner_id, int loser_id) {
         User winner = null;

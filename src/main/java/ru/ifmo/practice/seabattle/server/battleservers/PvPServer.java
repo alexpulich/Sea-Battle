@@ -43,6 +43,7 @@ public class PvPServer extends BattleServer {
                         if (queue.size() > 1) {
                             queue.remove(session.getId());
                             String opponentId = getOpponentByRating(players.get(session.getId()));
+                            queue.remove(opponentId);
                             rooms.add(new Room(session.getId(), opponentId));
 
                             try {
@@ -163,7 +164,10 @@ public class PvPServer extends BattleServer {
             sendMessage(new Message<>(BattleResult.Win), ((Player) winner).getSession());
             sendMessage(new Message<>(BattleResult.Lose), ((Player) loser).getSession());
 
-            new BattleResultHandler().handle(((Player) winner).getId(), ((Player) loser).getId());
+            int winnerId = BattleResultHandler.UNREGISTRED_ID, loserId = BattleResultHandler.UNREGISTRED_ID;
+            if (((Player) winner).getId() != null) winnerId = ((Player) winner).getId();
+            if (((Player) loser).getId() != null) loserId = ((Player) loser).getId();
+            new BattleResultHandler().handle(winnerId, loserId);
         } catch (IOException e) {
             e.printStackTrace();
         }
