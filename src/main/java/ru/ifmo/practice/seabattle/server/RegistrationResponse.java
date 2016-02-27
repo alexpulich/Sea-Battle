@@ -1,44 +1,26 @@
 package ru.ifmo.practice.seabattle.server;
 
 public class RegistrationResponse {
-    private boolean validPassword = true;
-    private boolean validPassConfirm = true;
-    private boolean validNickname = true;
-    private boolean uniqueNickname = true;
-    private boolean validEmail = true;
-    private boolean uniqueEmail = true;
-    private boolean serverOk = true;
-    private boolean userRegistered = true;
+    private boolean validPassword;
+    private boolean validPassConfirm;
+    private boolean validNickname;
+    private boolean uniqueNickname;
+    private boolean validEmail;
+    private boolean uniqueEmail;
+    private boolean serverOk;
+    private boolean userRegistered;
 
-    public void setValidPassword(boolean validPassword) {
+    public RegistrationResponse(boolean validPassword, boolean validPassConfirm,
+                                boolean validNickname, boolean uniqueNickname,
+                                boolean validEmail, boolean uniqueEmail,
+                                boolean serverOk, boolean userRegistered) {
         this.validPassword = validPassword;
-    }
-
-    public void setValidPassConfirm(boolean validPassConfirm) {
         this.validPassConfirm = validPassConfirm;
-    }
-
-    public void setValidNickname(boolean validNickname) {
         this.validNickname = validNickname;
-    }
-
-    public void setUniqueNickname(boolean uniqueNickname) {
         this.uniqueNickname = uniqueNickname;
-    }
-
-    public void setValidEmail(boolean validEmail) {
         this.validEmail = validEmail;
-    }
-
-    public void setUniqueEmail(boolean uniqueEmail) {
         this.uniqueEmail = uniqueEmail;
-    }
-
-    public void setServerOk(boolean serverOk) {
         this.serverOk = serverOk;
-    }
-
-    public void setUserRegistered(boolean userRegistered) {
         this.userRegistered = userRegistered;
     }
 }

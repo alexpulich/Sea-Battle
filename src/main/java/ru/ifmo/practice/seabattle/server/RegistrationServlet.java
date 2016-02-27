@@ -27,39 +27,49 @@ public class RegistrationServlet extends HttpServlet {
         String password = req.getParameter("password").trim();
         String confirmPassword = req.getParameter("password-confirm").trim();
         String nickname = req.getParameter("login").trim();
+        //флаги
+        boolean validPassword = true;
+        boolean validPassConfirm = true;
+        boolean validNickname = true;
+        boolean uniqueNickname = true;
+        boolean validEmail = true;
+        boolean uniqueEmail = true;
+        boolean serverOk = true;
+        boolean userRegistered = true;
+        //
+
 
         PrintWriter respWriter = resp.getWriter();
-        RegistrationResponse regResp = new RegistrationResponse();
 
         if (!validateEmail(email)) {
-            regResp.setValidEmail(false);
+            validEmail = false;
         }
         if (!validateNickname(nickname)) {
-            regResp.setValidNickname(false);
+            validNickname = false;
         }
         if (!validatePassword(password)) {
-            regResp.setValidPassword(false);
+            validPassword = false;
         }
         if (!password.equals(confirmPassword)) {
-            regResp.setValidPassConfirm(false);
+            validPassConfirm = false;
         }
 
         try {
             if (!DAOFactory.getInstance().getUserDAOimpl().isNicknameUnique(nickname)) {
-                regResp.setUniqueNickname(false);
+                uniqueNickname = false;
             }
             if (!DAOFactory.getInstance().getUserDAOimpl().isEmailUnique(email)) {
-                regResp.setUniqueEmail(false);
+                uniqueEmail = false;
             }
         } catch (SQLException e) {
-            regResp.setServerOk(false);
+            serverOk = false;
         }
 
         MessageDigest md = null;
         try {
             md = MessageDigest.getInstance("MD5");
         } catch (NoSuchAlgorithmException e) {
-            regResp.setServerOk(false);
+            serverOk = false;
         }
 
         String hashString = null;
@@ -73,15 +83,15 @@ public class RegistrationServlet extends HttpServlet {
         try {
             DAOFactory.getInstance().getUserDAOimpl().addUser(user);
         } catch (SQLException e) {
-            regResp.setServerOk(false);
-            regResp.setUserRegistered(false);
+            serverOk = false;
+            userRegistered = false;
         }
 
         User usr = null;
         try {
             usr = DAOFactory.getInstance().getUserDAOimpl().getUserByNickname(user.getUser_nickname());//для получения id юзера после внесения в базу
         } catch (SQLException e) {
-            regResp.setServerOk(false);
+            serverOk = false;
         }
         if (usr != null) {
             HttpSession session = req.getSession(true);
@@ -90,6 +100,10 @@ public class RegistrationServlet extends HttpServlet {
             Log.getInstance().sendMessage(this.getClass(), "Зарегистрирован пользователь " + user.getId() + "  " + user.getUser_nickname() + "  " + user.getEmail());
         }
 
+        RegistrationResponse regResp = new RegistrationResponse(validPassword, validPassConfirm,
+                validNickname, uniqueNickname,
+                validEmail, uniqueEmail,
+                serverOk, userRegistered);
         String message = new Gson().toJson(new Message<>(regResp));
         respWriter.print(message);
     }

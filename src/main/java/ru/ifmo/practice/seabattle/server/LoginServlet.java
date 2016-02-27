@@ -24,14 +24,18 @@ public class LoginServlet extends HttpServlet {
         String email = req.getParameter("email").trim();
         String password = req.getParameter("password").trim();
 
+        //Флаги
+        boolean login = true;
+        boolean serverOk = true;
+        //
+
         PrintWriter respWriter = resp.getWriter();
-        LoginResponse logResp = new LoginResponse();
 
         MessageDigest md = null;
         try {
             md = MessageDigest.getInstance("MD5");
         } catch (NoSuchAlgorithmException e) {
-            logResp.setServerOk(false);
+            serverOk = false;
         }
 
         String hashString = null;
@@ -44,16 +48,17 @@ public class LoginServlet extends HttpServlet {
         try {
             user = DAOFactory.getInstance().getUserDAOimpl().login(email, hashString);
         } catch (SQLException e) {
-            logResp.setServerOk(false);
+            serverOk = false;
         }
         if (user == null) {
-            logResp.setLogin(false);
+            serverOk = false;
         } else {
             HttpSession session = req.getSession(true);
             session.setAttribute("nickname", user.getUser_nickname());
             session.setAttribute("id", user.getId());
             Log.getInstance().sendMessage(this.getClass(), "Авторизовался пользователь " + user.getId() + "  " + user.getUser_nickname() + "  " + user.getEmail());
         }
+        LoginResponse logResp = new LoginResponse(login, serverOk);
         String message = new Gson().toJson(new Message<>(logResp));
         respWriter.print(message);
     }
