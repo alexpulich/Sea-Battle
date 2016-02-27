@@ -187,6 +187,6 @@ class Player implements Gamer, FieldChangesListener {
     @Override
     public void fieldChanged(Field field, Coordinates hit, HashSet<Coordinates> misses) {
         blackList.add(hit);
-        misses.forEach(miss -> blackList.add(miss));
+        if (misses != null) misses.forEach(miss -> blackList.add(miss));
     }
 }
