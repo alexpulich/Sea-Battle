@@ -36,7 +36,7 @@ public class RegistrationServlet extends HttpServlet {
                     " digits and symbols \"_\", \"!\", \"^\", \"-\".");
         }
 
-        if (!password.equals(confirmPassword)){
+        if (!password.equals(confirmPassword)) {
             resp.sendError(resp.SC_CONFLICT, "passwords not equal");
         }
 
@@ -71,7 +71,8 @@ public class RegistrationServlet extends HttpServlet {
 
         HttpSession session = req.getSession(true);
         session.setAttribute("nickname", nickname);
-        session.setAttribute("id",user.getId());
+        session.setAttribute("id", user.getId());
+        Log.getInstance().sendMessage(this.getClass(), "Зарегистрирован пользователь " + user.getId() + "  " + user.getUser_nickname() + "  " + user.getEmail());
         resp.setStatus(resp.SC_OK);
     }
 

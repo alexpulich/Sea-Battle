@@ -43,6 +43,7 @@ public class LoginServlet extends HttpServlet {
         HttpSession session = req.getSession(true);
         session.setAttribute("nickname", user.getUser_nickname());
         session.setAttribute("id", user.getId());
+        Log.getInstance().sendMessage(this.getClass(), "Авторизовался пользователь " + user.getId()+"  " + user.getUser_nickname()+"  " + user.getEmail());
         resp.setStatus(resp.SC_OK);
     }
 }
