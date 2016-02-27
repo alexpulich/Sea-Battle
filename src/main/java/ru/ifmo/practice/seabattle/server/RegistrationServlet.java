@@ -21,7 +21,9 @@ public class RegistrationServlet extends HttpServlet {
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         String email = req.getParameter("email").trim();
         String password = req.getParameter("password").trim();
-        String nickname = req.getParameter("nickname").trim();
+        String confirmPassword = req.getParameter("password-confirm").trim();
+        String nickname = req.getParameter("login").trim();
+
 
         if (!validateEmail(email)) {
             resp.sendError(resp.SC_CONFLICT, "invalid email address");
@@ -33,6 +35,11 @@ public class RegistrationServlet extends HttpServlet {
             resp.sendError(resp.SC_CONFLICT, "invalid password. Password must be 6-20 characters long and includes only latin letters," +
                     " digits and symbols \"_\", \"!\", \"^\", \"-\".");
         }
+
+        if (!password.equals(confirmPassword)){
+            resp.sendError(resp.SC_CONFLICT, "passwords not equal");
+        }
+
         try {
             if (!DAOFactory.getInstance().getUserDAOimpl().isNicknameUnique(nickname)) {
                 resp.sendError(resp.SC_CONFLICT, "this nickname is already registered");
