@@ -172,7 +172,7 @@ public class PvPServer extends BattleServer {
     private String getOpponentByRating(Player player) {
         if (queue.size() == 1) return queue.get(0);
 
-                ArrayList<String> ids = new ArrayList<>();
+        ArrayList<String> ids = new ArrayList<>();
         ids.addAll(queue);
         ids.sort((id1, id2) -> {
             Player player1 = players.get(id1);
@@ -193,9 +193,9 @@ public class PvPServer extends BattleServer {
 
         if (player.getRating() == null) return ids.get(0);
         else {
-            for (int i = queue.size() - 1; i > 0; i--) {
-                Player leftOpponent = players.get(queue.get(i - 1));
-                Player rightOpponent = players.get(queue.get(i));
+            for (int i = ids.size() - 1; i > 0; i--) {
+                Player leftOpponent = players.get(ids.get(i - 1));
+                Player rightOpponent = players.get(ids.get(i));
 
                 if (rightOpponent.getRating() == null
                         || rightOpponent.getRating() <= player.getRating()) return queue.get(i);
@@ -203,14 +203,14 @@ public class PvPServer extends BattleServer {
                     if (leftOpponent.getRating() != null) {
                         if (leftOpponent.getRating() <= player.getRating()) {
                             if (getRatingDiff(player, leftOpponent) < getRatingDiff(player, rightOpponent))
-                                return queue.get(i - 1);
-                            else return queue.get(i);
+                                return ids.get(i - 1);
+                            else return ids.get(i);
                         }
-                    } else queue.get(i);
+                    } else ids.get(i);
                 }
             }
 
-            return queue.get(queue.size() - 1);
+            return ids.get(ids.size() - 1);
         }
     }
 
