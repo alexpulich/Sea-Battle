@@ -5,7 +5,7 @@
 <hibernate-configuration>
     <session-factory>
 
-        <property name="connection.url">jdbc:mysql://localhost/SEABATTLE</property>
+        <property name="connection.url">jdbc:mysql://localhost:2254/SEABATTLE</property>
         <property name="connection.driver_class">com.mysql.jdbc.Driver</property>
         <property name="connection.username">seabattleadmin</property>
         <property name="connection.password">157980ab</property>
