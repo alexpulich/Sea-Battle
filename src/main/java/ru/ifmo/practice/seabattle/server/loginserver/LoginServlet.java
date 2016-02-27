@@ -52,8 +52,9 @@ public class LoginServlet extends HttpServlet {
         } catch (SQLException e) {
             serverOk = false;
         }
+        //Юзер не найде в базе
         if (user == null) {
-            serverOk = false;
+            login = false;
         } else {
             HttpSession session = req.getSession(true);
             session.setAttribute("nickname", user.getUser_nickname());
