@@ -11,6 +11,8 @@ import java.util.HashMap;
 import java.util.HashSet;
 
 class Player implements Gamer {
+    private Integer rating;
+    private Integer id;
     private String nickName;
     private Session session;
     private FirstField firstField = null;
@@ -35,13 +37,9 @@ class Player implements Gamer {
         } else throw new IllegalArgumentException("В данную клетку уже стреляли");
     }
 
-    public Player(String nickName, FirstField firstField, SecondField secondField) {
-        this.nickName = nickName;
-        this.firstField = firstField;
-        this.secondField = secondField;
-    }
-
-    public Player(Session session, String nickName) {
+    public Player(Session session, String nickName, Integer id, Integer rating) {
+        this.id = id;
+        this.rating = rating;
         this.session = session;
         this.nickName = nickName;
         turn = false;
@@ -55,6 +53,14 @@ class Player implements Gamer {
     @Override
     public FirstField getFirstField() {
         return firstField;
+    }
+
+    public Integer getId() {
+        return id;
+    }
+
+    public Integer getRating() {
+        return rating;
     }
 
     public FirstFieldBuilder getFirstFieldBuilder() throws BattleAlreadyStartException {
