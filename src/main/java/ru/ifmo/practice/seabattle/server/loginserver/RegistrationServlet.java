@@ -80,12 +80,16 @@ public class RegistrationServlet extends HttpServlet {
             byte[] hashBytes = md.digest(passBytes);
             hashString = DatatypeConverter.printHexBinary(hashBytes);
         }
-
-        User user = new User(nickname, email, hashString);
-        try {
-            DAOFactory.getInstance().getUserDAOimpl().addUser(user);
-        } catch (SQLException e) {
-            serverOk = false;
+        User user = null;
+        if (validEmail && validNickname && validPassword && validPassConfirm && uniqueEmail && uniqueNickname) {
+            user = new User(nickname, email, hashString);
+            try {
+                DAOFactory.getInstance().getUserDAOimpl().addUser(user);
+            } catch (SQLException e) {
+                serverOk = false;
+                userRegistered = false;
+            }
+        } else {
             userRegistered = false;
         }
 
