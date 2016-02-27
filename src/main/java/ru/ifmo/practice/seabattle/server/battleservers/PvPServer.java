@@ -5,7 +5,6 @@ import ru.ifmo.practice.seabattle.battle.Gamer;
 import ru.ifmo.practice.seabattle.battle.SecondField;
 import ru.ifmo.practice.seabattle.exceptions.BattleAlreadyStartException;
 import ru.ifmo.practice.seabattle.exceptions.RoomIsFullException;
-import ru.ifmo.practice.seabattle.server.BattleResult;
 import ru.ifmo.practice.seabattle.server.Message;
 import ru.ifmo.practice.seabattle.server.Notice;
 
@@ -43,10 +42,7 @@ public class PvPServer extends BattleServer {
                     if (queue.contains(session.getId())) {
                         if (queue.size() > 1) {
                             queue.remove(session.getId());
-
-                            String opponentId = queue.get(0);
-                            queue.remove(opponentId);
-
+                            String opponentId = getOpponentByRating(players.get(session.getId()));
                             rooms.add(new Room(session.getId(), opponentId));
 
                             try {
@@ -166,9 +162,60 @@ public class PvPServer extends BattleServer {
         try {
             sendMessage(new Message<>(BattleResult.Win), ((Player) winner).getSession());
             sendMessage(new Message<>(BattleResult.Lose), ((Player) loser).getSession());
+
+            new BattleResultHandler().handle(((Player) winner).getId(), ((Player) loser).getId());
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    private String getOpponentByRating(Player player) {
+        if (queue.size() == 1) return queue.get(0);
+
+                ArrayList<String> ids = new ArrayList<>();
+        ids.addAll(queue);
+        ids.sort((id1, id2) -> {
+            Player player1 = players.get(id1);
+            Player player2 = players.get(id2);
+
+            if (player1.getRating() == null && player2.getRating() == null) return 0;
+            else {
+                if (player1.getRating() == null || player2.getRating() == null) {
+                    if (player1.getRating() == null) return -1;
+                    else return 1;
+                } else {
+                    if (player1.getRating() > player2.getRating()) return 1;
+                    else if (player1.getRating() < player2.getRating()) return -1;
+                    else return 0;
+                }
+            }
+        });
+
+        if (player.getRating() == null) return ids.get(0);
+        else {
+            for (int i = queue.size() - 1; i > 0; i--) {
+                Player leftOpponent = players.get(queue.get(i - 1));
+                Player rightOpponent = players.get(queue.get(i));
+
+                if (rightOpponent.getRating() == null
+                        || rightOpponent.getRating() <= player.getRating()) return queue.get(i);
+                else {
+                    if (leftOpponent.getRating() != null) {
+                        if (leftOpponent.getRating() <= player.getRating()) {
+                            if (getRatingDiff(player, leftOpponent) < getRatingDiff(player, rightOpponent))
+                                return queue.get(i - 1);
+                            else return queue.get(i);
+                        }
+                    } else queue.get(i);
+                }
+            }
+
+            return queue.get(queue.size() - 1);
+        }
+    }
+
+    private int getRatingDiff(Player player, Player opponent) {
+        return Math.abs(player.getRating() - opponent.getRating());
     }
 
     private class Room {
