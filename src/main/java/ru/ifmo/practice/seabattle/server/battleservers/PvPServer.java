@@ -5,7 +5,6 @@ import ru.ifmo.practice.seabattle.battle.Gamer;
 import ru.ifmo.practice.seabattle.battle.SecondField;
 import ru.ifmo.practice.seabattle.exceptions.BattleAlreadyStartException;
 import ru.ifmo.practice.seabattle.exceptions.RoomIsFullException;
-import ru.ifmo.practice.seabattle.server.BattleResult;
 import ru.ifmo.practice.seabattle.server.Message;
 import ru.ifmo.practice.seabattle.server.Notice;
 
@@ -42,11 +41,8 @@ public class PvPServer extends BattleServer {
                 try {
                     if (queue.contains(session.getId())) {
                         if (queue.size() > 1) {
+                            String opponentId = getOpponentByRating(players.get(session.getId()));
                             queue.remove(session.getId());
-
-                            String opponentId = queue.get(0);
-                            queue.remove(opponentId);
-
                             rooms.add(new Room(session.getId(), opponentId));
 
                             try {
@@ -166,9 +162,76 @@ public class PvPServer extends BattleServer {
         try {
             sendMessage(new Message<>(BattleResult.Win), ((Player) winner).getSession());
             sendMessage(new Message<>(BattleResult.Lose), ((Player) loser).getSession());
+
+            new BattleResultHandler().handle(((Player) winner).getId(), ((Player) loser).getId());
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    private String getOpponentByRating(Player player) {
+        if (player.getId() == null) {
+            String opponentId = null;
+
+            for (String sessionId : queue) {
+                Player opponent = players.get(sessionId);
+                if (opponent.getId() == null) {
+                    opponentId = opponent.getSession().getId();
+                    break;
+                }
+            }
+
+            if (opponentId == null) {
+                if (!player.getSession().getId().equals(queue.get(0))) opponentId = queue.get(0);
+                else opponentId = queue.get(1);
+            }
+            return opponentId;
+        }
+
+        ArrayList<String> ids = new ArrayList<>();
+        ids.addAll(queue);
+        ids.sort((id1, id2) -> {
+            Player player1 = players.get(id1);
+            Player player2 = players.get(id2);
+
+            if (player1.getRating() == null && player2.getRating() == null) return 0;
+            else {
+                if (player1.getRating() == null || player2.getRating() == null) {
+                    if (player1.getRating() == null) return -1;
+                    else return 1;
+                } else {
+                    if (player1.getRating() > player2.getRating()) return 1;
+                    else if (player1.getRating() < player2.getRating()) return -1;
+                    else return 0;
+                }
+            }
+        });
+
+        int index = ids.indexOf(player.getSession().getId());
+        Integer leftRatingDiff = null;
+        Integer rightRatingDiff = null;
+
+        if (index > 0) {
+            if (index < ids.size() - 1) {
+                leftRatingDiff = getRatingDiff(player, players.get(queue.get(index - 1)));
+                rightRatingDiff = getRatingDiff(player, players.get(queue.get(index + 1)));
+            } else leftRatingDiff = getRatingDiff(player, players.get(queue.get(index - 1)));
+        } else if (index < ids.size() - 1) rightRatingDiff = getRatingDiff(player, players.get(queue.get(index + 1)));
+
+        if (rightRatingDiff == null && leftRatingDiff == null) {
+            if (!player.getSession().getId().equals(queue.get(0))) return queue.get(0);
+            else return queue.get(1);
+        } else if (rightRatingDiff == null
+                || (leftRatingDiff != null
+                && leftRatingDiff < rightRatingDiff))
+            return queue.get(index - 1);
+        else return queue.get(index + 1);
+    }
+
+    private Integer getRatingDiff(Player player, Player opponent) {
+        if (opponent.getRating() != null && player.getRating() != null)
+            return Math.abs(player.getRating() - opponent.getRating());
+        else return null;
     }
 
     private class Room {

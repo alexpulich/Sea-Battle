@@ -5,6 +5,8 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonIOException;
 import com.google.gson.JsonSyntaxException;
 import ru.ifmo.practice.seabattle.battle.*;
+import ru.ifmo.practice.seabattle.db.DAOFactory;
+import ru.ifmo.practice.seabattle.db.User;
 import ru.ifmo.practice.seabattle.exceptions.BattleAlreadyStartException;
 import ru.ifmo.practice.seabattle.exceptions.CommandAlreadySetException;
 import ru.ifmo.practice.seabattle.exceptions.IllegalNumberOfShipException;
@@ -15,6 +17,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpSession;
 import javax.websocket.Session;
 import java.io.IOException;
+import java.sql.SQLException;
 import java.util.*;
 
 abstract class BattleServer extends HttpServlet implements FieldChangesListener,
@@ -24,9 +27,21 @@ abstract class BattleServer extends HttpServlet implements FieldChangesListener,
     protected void onOpen(Session session, HttpSession httpSession) throws IOException {
         Log.getInstance().sendMessage(this.getClass(), session.getId(), "Соединение установлено");
 
-        Object nickName = httpSession.getAttribute("nickName");
-        if (nickName != null) players.put(session.getId(), new Player(session, nickName.toString()));
-        else players.put(session.getId(), new Player(session, "Игрок " + httpSession.getId()));
+        Player player;
+        Object objId = httpSession.getAttribute("id");
+        if (objId != null) {
+            try {
+                Integer id = new Integer(objId.toString());
+                User user = DAOFactory.getInstance().getUserDAOimpl().getUserById(id);
+                player = new Player(session, user.getUser_nickname(), id, user.getRaiting());
+            } catch (NumberFormatException | SQLException e) {
+                player = new Player(session, "*Игрок " + session.getId() + "*", null, null);
+            }
+        } else {
+            player = new Player(session, "*Игрок " + session.getId() + "*", null, null);
+        }
+
+        players.put(session.getId(), player);
     }
 
     protected void onClose(Session session) throws IOException {

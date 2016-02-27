@@ -1,4 +1,4 @@
-package ru.ifmo.practice.seabattle.server;
+package ru.ifmo.practice.seabattle.server.battleservers;
 
 
 import ru.ifmo.practice.seabattle.db.DAOFactory;
@@ -8,6 +8,8 @@ import ru.ifmo.practice.seabattle.db.User;
 import java.sql.SQLException;
 
 public class BattleResultHandler {
+    public static final int BOT_ID = 1;
+
     public void handle(int winner_id, int loser_id) {
         User winner = null;
         User loser = null;

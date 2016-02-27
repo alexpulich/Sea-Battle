@@ -5,7 +5,6 @@ import ru.ifmo.practice.seabattle.battle.Gamer;
 import ru.ifmo.practice.seabattle.battle.SecondField;
 import ru.ifmo.practice.seabattle.battle.bot.Bot;
 import ru.ifmo.practice.seabattle.exceptions.BattleAlreadyStartException;
-import ru.ifmo.practice.seabattle.server.BattleResult;
 import ru.ifmo.practice.seabattle.server.Message;
 
 import javax.websocket.OnClose;
@@ -65,14 +64,19 @@ public class PvBServer extends BattleServer {
     public void battleEnd(Gamer winner, Gamer loser) {
         Player player;
         BattleResult result;
+        BattleResultHandler battleResultHandler = new BattleResultHandler();
 
         if (winner instanceof Player) {
             player = (Player)winner;
             result = BattleResult.Win;
+
+            if (player.getId() != null) battleResultHandler.handle(player.getId(), BattleResultHandler.BOT_ID);
         }
         else if (loser instanceof Player) {
             player = (Player)loser;
             result = BattleResult.Lose;
+
+            if (player.getId() != null) battleResultHandler.handle(BattleResultHandler.BOT_ID, player.getId());
         }
         else return;
 
