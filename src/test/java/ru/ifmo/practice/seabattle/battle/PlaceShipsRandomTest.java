@@ -5,11 +5,11 @@ import ru.ifmo.practice.seabattle.exceptions.IllegalNumberOfShipException;
 
 public class PlaceShipsRandomTest {
     public static void main(String[] args) {
-        FieldBuilder fieldBuilder = new FieldBuilder();
-        fieldBuilder.placeShipsRandom();
-        Field field = null;
+        FirstFieldBuilder firstFieldBuilder = new FirstFieldBuilder();
+        firstFieldBuilder.placeShipsRandom();
+        FirstField field = null;
         try {
-            field = fieldBuilder.create();
+            field = firstFieldBuilder.create();
         } catch (IllegalNumberOfShipException e) {
             e.printStackTrace();
         }

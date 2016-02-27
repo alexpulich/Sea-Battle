@@ -6,13 +6,15 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
 
-public class FieldBuilder {
+public class FirstFieldBuilder {
     private ArrayList<Ship> ships = new ArrayList<>();
     private int[] numberOfShipsForDecks = new int[5]; // [4] - 4x, [3] - 3x, [2] - 2x, [1] - 1но палубные корабли
 
-    public Field create() throws IllegalNumberOfShipException {
+    public FirstField create() throws IllegalNumberOfShipException {
         if (ships.size() < 10) throw new IllegalNumberOfShipException("Поле еще не заполнено");
-        return new Field(ships);
+        ArrayList<Ship> field = new ArrayList<>();
+        field.addAll(ships);
+        return new FirstField(field);
     }
 
     public void placeShipsRandom() {
@@ -49,15 +51,18 @@ public class FieldBuilder {
 
     public void addShip(HashSet<Coordinates> shipCoordinates) throws IllegalNumberOfShipException {
         if (ships.size() == 10) throw new IllegalNumberOfShipException("Поле уже заполнено");
-
-        if (isPlaceOccuped(shipCoordinates)) {
-            throw new IllegalArgumentException("Место уже занято");
-        }
-
+        if (isPlaceOccuped(shipCoordinates)) throw new IllegalArgumentException("Место уже занято");
         if (numberOfShipsForDecks[shipCoordinates.size()] ==
                 5 - shipCoordinates.size())
             throw new IllegalArgumentException("Количество " +
                     shipCoordinates.size() + " палубных кораблей превышено");
+
+        for (Coordinates deck : shipCoordinates) {
+            if (deck.getY() < 0 || deck.getY() > 9
+                    || deck.getX() < 0 || deck.getX() > 9) {
+                throw new IllegalArgumentException("Корабль выходит за границы поля");
+            }
+        }
 
         ships.add(new Ship(shipCoordinates));
         numberOfShipsForDecks[shipCoordinates.size()]++;

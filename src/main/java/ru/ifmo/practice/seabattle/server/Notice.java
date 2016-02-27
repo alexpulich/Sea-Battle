@@ -1,5 +1,15 @@
 package ru.ifmo.practice.seabattle.server;
 
-enum Notice {
-    OpponentFound, YourTurn, OK, Error
+public enum Notice {
+    OpponentFound,
+    OpponentLeft,
+    YourTurn,
+    FieldSet,
+    ExpectedCoordinates,
+    ExpectedField,
+    ExpectedAddShip,
+    ExpectedRemoveShip,
+    ExpectedShipMovement,
+    ShipAdded,
+    ShipRemoved
 }

@@ -6,8 +6,8 @@ import ru.ifmo.practice.seabattle.exceptions.IllegalNumberOfShipException;
 import java.util.HashSet;
 
 public class Battle implements Runnable {
-    private static HashSet<BattleEndedListener> battleEndedListeners = new HashSet<>();
-    private static HashSet<NextTurnListener> nextTurnListeners = new HashSet<>();
+    private HashSet<BattleEndedListener> battleEndedListeners = new HashSet<>();
+    private HashSet<NextTurnListener> nextTurnListeners = new HashSet<>();
     private Gamer firstGamer;
     private Gamer secondGamer;
     private Gamer winner;
@@ -33,14 +33,19 @@ public class Battle implements Runnable {
     public void start() throws IllegalNumberOfShipException {
         Gamer attacker = firstGamer;
         Gamer defender = secondGamer;
-        HashSet<Coordinates> shotResult = null;
 
         do {
             fireNextTurnListeners(attacker);
-            Coordinates shot = attacker.nextRound(shotResult);
-            shotResult = defender.getField().shot(shot);
+            Coordinates shot = attacker.getShot();
+            HashSet<Coordinates> shotResult;
+            try {
+                shotResult = defender.getFirstField().shot(shot);
+            } catch (NullPointerException e) {
+                return;
+            }
+            attacker.setLastRoundResult(shotResult);
 
-            if (defender.getField().getNumberOfDestroyedDecks() == 20) {
+            if (defender.getFirstField().getNumberOfDestroyedDecks() == 20) {
                 winner = attacker;
                 looser = defender;
             } else if (shotResult == null) {

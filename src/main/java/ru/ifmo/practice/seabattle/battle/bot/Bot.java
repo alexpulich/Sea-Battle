@@ -1,8 +1,8 @@
 package ru.ifmo.practice.seabattle.battle.bot;
 
 import ru.ifmo.practice.seabattle.battle.Coordinates;
-import ru.ifmo.practice.seabattle.battle.Field;
-import ru.ifmo.practice.seabattle.battle.FieldBuilder;
+import ru.ifmo.practice.seabattle.battle.FirstField;
+import ru.ifmo.practice.seabattle.battle.FirstFieldBuilder;
 import ru.ifmo.practice.seabattle.battle.Gamer;
 import ru.ifmo.practice.seabattle.exceptions.IllegalNumberOfShipException;
 
@@ -11,15 +11,16 @@ import java.util.HashSet;
 import java.util.Random;
 
 public class Bot implements Gamer {
-    private Field field;
+    private FirstField field;
     private HashSet<Coordinates> blackList = new HashSet<>();
     private Coordinates lastShot = null;
     private HashSet<Coordinates> lastHits = new HashSet<>();
     private String nickname;
+    private HashSet<Coordinates> resultOfPreviousShot = null;
 
     public Bot(String nickname) {
         this.nickname = nickname;
-        FieldBuilder builder = new FieldBuilder();
+        FirstFieldBuilder builder = new FirstFieldBuilder();
         builder.placeShipsRandom();
         try {
             field = builder.create();
@@ -33,13 +34,17 @@ public class Bot implements Gamer {
         return nickname;
     }
 
-    @Override
-    public Field getField() {
+    public FirstField getFirstField() {
         return field;
     }
 
     @Override
-    public Coordinates nextRound(HashSet<Coordinates> resultOfPreviousShot) {
+    public void setLastRoundResult(HashSet<Coordinates> resultOfPreviousShot) {
+        this.resultOfPreviousShot = resultOfPreviousShot;
+    }
+
+    @Override
+    public Coordinates getShot() {
         Coordinates shot;
 
         if (lastHits.isEmpty()) {
