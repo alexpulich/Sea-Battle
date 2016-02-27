@@ -1,5 +1,6 @@
 package ru.ifmo.practice.seabattle.server;
 
+import com.google.gson.Gson;
 import ru.ifmo.practice.seabattle.db.DAOFactory;
 import ru.ifmo.practice.seabattle.db.User;
 
@@ -10,6 +11,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import javax.xml.bind.DatatypeConverter;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.sql.SQLException;
@@ -19,61 +21,77 @@ import java.util.regex.Pattern;
 public class RegistrationServlet extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        req.setCharacterEncoding("UTF-8");
+        resp.setCharacterEncoding("UTF-8");
         String email = req.getParameter("email").trim();
         String password = req.getParameter("password").trim();
         String confirmPassword = req.getParameter("password-confirm").trim();
         String nickname = req.getParameter("login").trim();
 
+        PrintWriter respWriter = resp.getWriter();
+        RegistrationResponse regResp = new RegistrationResponse();
 
         if (!validateEmail(email)) {
-            resp.sendError(resp.SC_CONFLICT, "invalid email address");
+            regResp.setValidEmail(false);
         }
         if (!validateNickname(nickname)) {
-            resp.sendError(resp.SC_CONFLICT, "invalid nickname");
+            regResp.setValidNickname(false);
         }
         if (!validatePassword(password)) {
-            resp.sendError(resp.SC_CONFLICT, "invalid password. Password must be 6-20 characters long and includes only latin letters," +
-                    " digits and symbols \"_\", \"!\", \"^\", \"-\".");
+            regResp.setValidPassword(false);
         }
-
         if (!password.equals(confirmPassword)) {
-            resp.sendError(resp.SC_CONFLICT, "passwords not equal");
+            regResp.setValidPassConfirm(false);
         }
 
         try {
             if (!DAOFactory.getInstance().getUserDAOimpl().isNicknameUnique(nickname)) {
-                resp.sendError(resp.SC_CONFLICT, "this nickname is already registered");
+                regResp.setUniqueNickname(false);
             }
             if (!DAOFactory.getInstance().getUserDAOimpl().isEmailUnique(email)) {
-                resp.sendError(resp.SC_CONFLICT, "this email is already registered");
+                regResp.setUniqueEmail(false);
             }
         } catch (SQLException e) {
-            resp.sendError(resp.SC_INTERNAL_SERVER_ERROR, "server error");
+            regResp.setServerOk(false);
         }
 
         MessageDigest md = null;
         try {
             md = MessageDigest.getInstance("MD5");
         } catch (NoSuchAlgorithmException e) {
-            resp.sendError(resp.SC_INTERNAL_SERVER_ERROR, "server error");
+            regResp.setServerOk(false);
         }
-        byte[] passBytes = password.getBytes("UTF-8");
-        byte[] hashBytes = md.digest(passBytes);
-        String hashString = DatatypeConverter.printHexBinary(hashBytes);
+
+        String hashString = null;
+        if (md != null) {
+            byte[] passBytes = password.getBytes("UTF-8");
+            byte[] hashBytes = md.digest(passBytes);
+            hashString = DatatypeConverter.printHexBinary(hashBytes);
+        }
 
         User user = new User(nickname, email, hashString);
         try {
             DAOFactory.getInstance().getUserDAOimpl().addUser(user);
-            user = DAOFactory.getInstance().getUserDAOimpl().getUserByNickname(user.getUser_nickname());//для получения id юзера после внесения в базу
         } catch (SQLException e) {
-            resp.sendError(resp.SC_INTERNAL_SERVER_ERROR, "server error");
+            regResp.setServerOk(false);
+            regResp.setUserRegistered(false);
         }
 
-        HttpSession session = req.getSession(true);
-        session.setAttribute("nickname", nickname);
-        session.setAttribute("id", user.getId());
-        Log.getInstance().sendMessage(this.getClass(), "Зарегистрирован пользователь " + user.getId() + "  " + user.getUser_nickname() + "  " + user.getEmail());
-        resp.setStatus(resp.SC_OK);
+        User usr = null;
+        try {
+            usr = DAOFactory.getInstance().getUserDAOimpl().getUserByNickname(user.getUser_nickname());//для получения id юзера после внесения в базу
+        } catch (SQLException e) {
+            regResp.setServerOk(false);
+        }
+        if (usr != null) {
+            HttpSession session = req.getSession(true);
+            session.setAttribute("nickname", nickname);
+            session.setAttribute("id", user.getId());
+            Log.getInstance().sendMessage(this.getClass(), "Зарегистрирован пользователь " + user.getId() + "  " + user.getUser_nickname() + "  " + user.getEmail());
+        }
+
+        String message = new Gson().toJson(new Message<>(regResp));
+        respWriter.print(message);
     }
 
     private boolean validateEmail(String email) {
