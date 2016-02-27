@@ -94,18 +94,19 @@ public class RegistrationServlet extends HttpServlet {
         }
 
         User usr = null;
-        try {
-            usr = DAOFactory.getInstance().getUserDAOimpl().getUserByNickname(user.getUser_nickname());//для получения id юзера после внесения в базу
-        } catch (SQLException e) {
-            serverOk = false;
+        if (userRegistered) {
+            try {
+                usr = DAOFactory.getInstance().getUserDAOimpl().getUserByNickname(user.getUser_nickname());//для получения id юзера после внесения в базу
+            } catch (SQLException e) {
+                serverOk = false;
+            }
+            if (usr != null) {
+                HttpSession session = req.getSession(true);
+                session.setAttribute("nickname", nickname);
+                session.setAttribute("id", usr.getId());
+                Log.getInstance().sendMessage(this.getClass(), "Зарегистрирован пользователь " + usr.getId() + "  " + usr.getUser_nickname() + "  " + usr.getEmail());
+            }
         }
-        if (usr != null) {
-            HttpSession session = req.getSession(true);
-            session.setAttribute("nickname", nickname);
-            session.setAttribute("id", user.getId());
-            Log.getInstance().sendMessage(this.getClass(), "Зарегистрирован пользователь " + user.getId() + "  " + user.getUser_nickname() + "  " + user.getEmail());
-        }
-
         RegistrationResponse regResp = new RegistrationResponse(validPassword, validPassConfirm,
                 validNickname, uniqueNickname,
                 validEmail, uniqueEmail,
