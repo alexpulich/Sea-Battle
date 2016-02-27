@@ -182,6 +182,11 @@ abstract class BattleServer extends HttpServlet implements FieldChangesListener,
                             break;
                     }
                 } catch (JsonSyntaxException | JsonIOException e) {
+                    try {
+                        player.setLastCommand(lastCommand);
+                    } catch (CommandAlreadySetException e1) {
+                        e1.printStackTrace();
+                    }
                     sendMessage(new Message<>(Error.IncorrectJsonSyntax), session);
                 }
             }
