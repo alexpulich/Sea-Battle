@@ -48,7 +48,6 @@ public class RegistrationServlet extends HttpServlet {
                 resp.sendError(resp.SC_CONFLICT, "this email is already registered");
             }
         } catch (SQLException e) {
-            e.printStackTrace();
             resp.sendError(resp.SC_INTERNAL_SERVER_ERROR, "server error");
         }
 
@@ -56,7 +55,6 @@ public class RegistrationServlet extends HttpServlet {
         try {
             md = MessageDigest.getInstance("MD5");
         } catch (NoSuchAlgorithmException e) {
-            e.printStackTrace();
             resp.sendError(resp.SC_INTERNAL_SERVER_ERROR, "server error");
         }
         byte[] passBytes = password.getBytes("UTF-8");
@@ -68,7 +66,6 @@ public class RegistrationServlet extends HttpServlet {
             DAOFactory.getInstance().getUserDAOimpl().addUser(user);
             user = DAOFactory.getInstance().getUserDAOimpl().getUserByNickname(user.getUser_nickname());//для получения id юзера после внесения в базу
         } catch (SQLException e) {
-            e.printStackTrace();
             resp.sendError(resp.SC_INTERNAL_SERVER_ERROR, "server error");
         }
 

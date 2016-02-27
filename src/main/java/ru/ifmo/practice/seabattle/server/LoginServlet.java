@@ -24,7 +24,6 @@ public class LoginServlet extends HttpServlet {
         try {
             md = MessageDigest.getInstance("MD5");
         } catch (NoSuchAlgorithmException e) {
-            e.printStackTrace();
             resp.sendError(resp.SC_INTERNAL_SERVER_ERROR, "server error");
         }
 
@@ -36,7 +35,6 @@ public class LoginServlet extends HttpServlet {
         try {
             user = DAOFactory.getInstance().getUserDAOimpl().login(email, hashString);
         } catch (SQLException e) {
-            e.printStackTrace();
             resp.sendError(resp.SC_INTERNAL_SERVER_ERROR, "server error");
         }
         if (user == null) {
