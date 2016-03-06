@@ -25,6 +25,7 @@ public class RegistrationServlet extends HttpServlet {
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         req.setCharacterEncoding("UTF-8");
         resp.setCharacterEncoding("UTF-8");
+        resp.setHeader("Access-Control-Allow-Origin", "*");
         String email = req.getParameter("email").trim();
         String password = req.getParameter("password").trim();
         String confirmPassword = req.getParameter("password-confirm").trim();
