@@ -1,0 +1,23 @@
+extends ../layouts/main-layout.jade
+block title
+    title Морской бой | Авторизация
+
+block content
+    section
+        .section-container.game-section
+            .inner
+                .intro
+                    form.form#login-form(action="/LoginServlet" method="post")
+                        .form-header Авторизация
+                        .form-line
+                            label.form-label(for="login") Логин:
+                            .input-wrapper
+                                input.form-input(type="text" name="login" id="login" placeholder="Например, winner3000" required)
+                        .clearfix
+                        .form-line
+                            label.form-label(for="password") Пароль:
+                            .input-wrapper
+                                input.form-input(type="password" name="password" id="password" placeholder="Пароль" required)
+                        .clearfix
+                        .form-line.submit-line
+                            input.form-submit(type="submit" name="submit" id="submit" value="Войти")
