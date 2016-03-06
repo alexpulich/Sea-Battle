@@ -46,14 +46,15 @@ var ajaxFormSender = (function() {
   }
 
   _ajaxForm = function(form, url) {
-    var data = form.serialize(),
+    var data = form.serialize();
         // IP = "http://46.32.76.190:8000";
-        IP = "http://46.33.76.190:8000/RegistrationServlet";
+        // IP = "http://46.33.76.190:8000/RegistrationServlet";
     console.log("DATA");
     console.log(data);
     return $.ajax({
       type: 'POST',
-      url: IP + url,
+      // url: IP + url,
+      url: url,
       dataType: 'JSON',
       crossDomain: true,
       data: data
