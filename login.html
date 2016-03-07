@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="ru_RU">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE-edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!--SEO-->
+    <meta name="description" content="">
+    <meta name="keywords" content="">
+    <link rel="author" href="humans.txt">
+    <link rel="icon" href="">
+    <title>Морской бой | Авторизация</title>
+    <!--Vendor CSS-->
+    <link rel="stylesheet" href="css/vendor.min.css">
+    <!--CSS-->
+    <link rel="stylesheet" href="css/main.min.css">
+  </head>
+</html>
+<body>
+  <!--[if lt IE 9]<p class="browsehappy">Ваш браузер <strong>устарел</strong>. Пожалуйста <a href="http://browsehappy.com/">обновите</a> его.</p><![endif]
+  -->
+  <div class="container">
+    <section>
+      <div class="section-container game-section">
+        <div class="inner">
+          <div class="intro">
+            <form id="login-form" action="http://46.32.76.190:8000/LoginServlet" method="post" class="form">
+              <div class="form-header">Авторизация</div>
+              <div class="form-line">
+                <label for="email" class="form-label">E-mail:</label>
+                <div class="input-wrapper">
+                  <input type="email" name="email" id="email" placeholder="Например, winner3000@mail.ru" required class="form-input">
+                </div>
+              </div>
+              <div class="clearfix"></div>
+              <div class="form-line">
+                <label for="password" class="form-label">Пароль:</label>
+                <div class="input-wrapper">
+                  <input type="password" name="password" id="password" placeholder="Пароль" required class="form-input">
+                </div>
+              </div>
+              <div class="clearfix"></div>
+              <div class="form-line submit-line">
+                <input type="submit" name="submit" id="submit" value="Войти" class="form-submit">
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script src="js/vendor.min.js"></script>
+  <script src="js/main.min.js"></script>
+</body>

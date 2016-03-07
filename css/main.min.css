@@ -338,3 +338,60 @@ body {
 
 .ship-animation {
   transition: top 1s ease, left 1s ease; }
+
+.form {
+  width: 430px;
+  margin: 0 auto; }
+
+.form-header {
+  font-size: 30px;
+  font-weight: black;
+  margin-bottom: 30px; }
+
+.form-line {
+  margin-top: 15px;
+  overflow: hidden; }
+  .form-line:first-child {
+    margin-top: 0; }
+
+.form-label {
+  display: block;
+  width: 170px;
+  float: left;
+  margin-top: 10px;
+  text-align: right; }
+
+.input-wrapper {
+  float: right;
+  overflow: hidden;
+  background: white;
+  border-radius: 5px;
+  padding: 0 5px;
+  height: 35px;
+  width: 250px; }
+
+.form-input {
+  height: 35px;
+  width: 100%;
+  color: black;
+  outline: none;
+  border: 0; }
+
+.form-submit {
+  color: black;
+  background: white;
+  border: 0;
+  outline: 0;
+  border-radius: 5px;
+  height: 40px;
+  width: 180px;
+  margin: 0 auto;
+  margin-top: 10px; }
+  .form-submit:hover {
+    background: #fffff0; }
+  .form-submit:focus {
+    background: #f0f0f0; }
+
+.user-info {
+  margin-bottom: 10px;
+  font-size: 1.1em; }
