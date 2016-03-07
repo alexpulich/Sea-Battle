@@ -11,5 +11,6 @@ public enum Notice {
     ExpectedRemoveShip,
     ExpectedShipMovement,
     ShipAdded,
-    ShipRemoved
+    ShipRemoved,
+    ExpectedChatMessage
 }

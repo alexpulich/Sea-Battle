@@ -4,6 +4,7 @@ import ru.ifmo.practice.seabattle.battle.Battle;
 import ru.ifmo.practice.seabattle.battle.Gamer;
 import ru.ifmo.practice.seabattle.battle.SecondField;
 import ru.ifmo.practice.seabattle.exceptions.BattleAlreadyStartException;
+import ru.ifmo.practice.seabattle.exceptions.ChatNotSupportedException;
 import ru.ifmo.practice.seabattle.exceptions.RoomIsFullException;
 import ru.ifmo.practice.seabattle.server.Message;
 import ru.ifmo.practice.seabattle.server.Notice;
@@ -226,22 +227,34 @@ public class PvPServer extends BattleServer {
 
     @Override
     public GamersInformation getGamersInformation(Player player) {
-        Player opponent = null;
-
-        for (Room room : rooms) {
-            if (room.contains(player.getSession().getId())) {
-                if (room.getPlayer1().equals(player.getSession().getId()))
-                    opponent = players.get(room.getPlayer2());
-                else opponent = players.get(room.getPlayer1());
-
-                break;
-            }
-        }
+        Player opponent = getOpponent(player);
 
         if (opponent != null) {
             return new GamersInformation(player.getNickName(), opponent.getNickName(),
                     player.getRating(), opponent.getRating());
         } else throw new IllegalArgumentException();
+    }
+
+    @Override
+    public void sendChatMessage(Player player, String message) throws ChatNotSupportedException, IOException {
+        Player opponent = getOpponent(player);
+
+        sendMessage(new Message<>(new ChatMessage(player.getNickName(), message)), player.getSession());
+        if (opponent != null) {
+            sendMessage(new Message<>(new ChatMessage(opponent.getNickName(), message)), opponent.getSession());
+        } else throw new IllegalArgumentException();
+    }
+
+    private Player getOpponent(Player player) {
+        for (Room room : rooms) {
+            if (room.contains(player.getSession().getId())) {
+                if (room.getPlayer1().equals(player.getSession().getId()))
+                    return players.get(room.getPlayer2());
+                else return players.get(room.getPlayer1());
+            }
+        }
+
+        return null;
     }
 
     private class Room {

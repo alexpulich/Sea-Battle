@@ -8,5 +8,6 @@ public enum Command {
     AddShip,
     RemoveShip,
     MoveShip,
-    GetGamersInformation
+    GetGamersInformation,
+    SendChatMessage
 }
