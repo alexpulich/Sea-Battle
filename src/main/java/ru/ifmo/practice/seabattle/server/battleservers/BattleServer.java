@@ -8,6 +8,7 @@ import ru.ifmo.practice.seabattle.battle.*;
 import ru.ifmo.practice.seabattle.db.DAOFactory;
 import ru.ifmo.practice.seabattle.db.User;
 import ru.ifmo.practice.seabattle.exceptions.BattleAlreadyStartException;
+import ru.ifmo.practice.seabattle.exceptions.ChatNotSupportedException;
 import ru.ifmo.practice.seabattle.exceptions.CommandAlreadySetException;
 import ru.ifmo.practice.seabattle.exceptions.IllegalNumberOfShipException;
 import ru.ifmo.practice.seabattle.server.*;
@@ -120,6 +121,11 @@ abstract class BattleServer extends HttpServlet implements FieldChangesListener,
                             sendMessage(new Message<>(getGamersInformation(player)), session);
                             break;
 
+                        case SendChatMessage:
+                            result = command;
+                            sendMessage(new Message<>(Notice.ExpectedChatMessage), session);
+                            break;
+
                         default:
                             sendMessage(new Message<>(Error.IncorrectCommand), session);
                             break;
@@ -194,6 +200,14 @@ abstract class BattleServer extends HttpServlet implements FieldChangesListener,
                                 else sendMessage(new Message<>(movement.getOldPlace()), session);
                             }
 
+                            break;
+
+                        case SendChatMessage:
+                            try {
+                                sendChatMessage(player, message);
+                            } catch (ChatNotSupportedException e) {
+                                sendMessage(new Message<>(Error.ChatNotSupported), session);
+                            }
                             break;
 
                         default:
@@ -286,6 +300,9 @@ abstract class BattleServer extends HttpServlet implements FieldChangesListener,
     abstract protected void startBattle(Player player) throws IOException, BattleAlreadyStartException;
 
     abstract protected GamersInformation getGamersInformation(Player player);
+
+    abstract protected void sendChatMessage(Player player, String message)
+            throws ChatNotSupportedException, IOException;
 
     @Override
     abstract public void battleEnd(Gamer winner, Gamer loser);

@@ -5,6 +5,7 @@ import ru.ifmo.practice.seabattle.battle.Gamer;
 import ru.ifmo.practice.seabattle.battle.SecondField;
 import ru.ifmo.practice.seabattle.battle.bot.Bot;
 import ru.ifmo.practice.seabattle.exceptions.BattleAlreadyStartException;
+import ru.ifmo.practice.seabattle.exceptions.ChatNotSupportedException;
 import ru.ifmo.practice.seabattle.server.Message;
 
 import javax.websocket.OnClose;
@@ -63,6 +64,11 @@ public class PvBServer extends BattleServer {
     @Override
     public GamersInformation getGamersInformation(Player player) {
         return new GamersInformation(player.getNickName(), "*Бот*", player.getRating(), null);
+    }
+
+    @Override
+    public void sendChatMessage(Player player, String message) throws ChatNotSupportedException, IOException {
+        throw new ChatNotSupportedException();
     }
 
     @Override

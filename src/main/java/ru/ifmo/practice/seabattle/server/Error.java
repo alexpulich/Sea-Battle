@@ -11,5 +11,6 @@ public enum Error {
     ShipNotFound,
     ShotRepeated,
     NotYourTurn,
-    BattleNotStart
+    BattleNotStart,
+    ChatNotSupported
 }
