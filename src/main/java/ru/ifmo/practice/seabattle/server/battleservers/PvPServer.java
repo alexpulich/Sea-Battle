@@ -224,6 +224,26 @@ public class PvPServer extends BattleServer {
         return Math.abs(player.getRating() - opponent.getRating());
     }
 
+    @Override
+    public GamersInformation getGamersInformation(Player player) {
+        Player opponent = null;
+
+        for (Room room : rooms) {
+            if (room.contains(player.getSession().getId())) {
+                if (room.getPlayer1().equals(player.getSession().getId()))
+                    opponent = players.get(room.getPlayer2());
+                else opponent = players.get(room.getPlayer1());
+
+                break;
+            }
+        }
+
+        if (opponent != null) {
+            return new GamersInformation(player.getNickName(), opponent.getNickName(),
+                    player.getRating(), opponent.getRating());
+        } else throw new IllegalArgumentException();
+    }
+
     private class Room {
         private String player1 = null;
         private String player2 = null;

@@ -7,5 +7,6 @@ public enum Command {
     Shot,
     AddShip,
     RemoveShip,
-    MoveShip
+    MoveShip,
+    GetGamersInformation
 }

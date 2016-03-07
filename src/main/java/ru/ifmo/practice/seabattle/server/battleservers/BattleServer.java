@@ -116,6 +116,10 @@ abstract class BattleServer extends HttpServlet implements FieldChangesListener,
                             sendMessage(new Message<>(Notice.ExpectedShipMovement), session);
                             break;
 
+                        case GetGamersInformation:
+                            sendMessage(new Message<>(getGamersInformation(player)), session);
+                            break;
+
                         default:
                             sendMessage(new Message<>(Error.IncorrectCommand), session);
                             break;
@@ -280,6 +284,8 @@ abstract class BattleServer extends HttpServlet implements FieldChangesListener,
     }
 
     abstract protected void startBattle(Player player) throws IOException, BattleAlreadyStartException;
+
+    abstract protected GamersInformation getGamersInformation(Player player);
 
     @Override
     abstract public void battleEnd(Gamer winner, Gamer loser);
