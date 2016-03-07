@@ -61,6 +61,11 @@ public class PvBServer extends BattleServer {
     }
 
     @Override
+    public GamersInformation getGamersInformation(Player player) {
+        return new GamersInformation(player.getNickName(), "*Бот*", player.getRating(), null);
+    }
+
+    @Override
     public void battleEnd(Gamer winner, Gamer loser) {
         Player player;
         BattleResult result;
