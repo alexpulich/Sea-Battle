@@ -7,10 +7,7 @@ import ru.ifmo.practice.seabattle.server.Log;
 import ru.ifmo.practice.seabattle.server.Message;
 
 import javax.servlet.ServletException;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
+import javax.servlet.http.*;
 import javax.xml.bind.DatatypeConverter;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -60,10 +57,12 @@ public class LoginServlet extends HttpServlet {
             HttpSession session = req.getSession(true);
             session.setAttribute("nickname", user.getUser_nickname());
             session.setAttribute("id", user.getId());
+            resp.addCookie(new Cookie("nickname", user.getUser_nickname()));
             Log.getInstance().sendMessage(this.getClass(), "Авторизовался пользователь " + user.getId() + "  " + user.getUser_nickname() + "  " + user.getEmail());
         }
         LoginResponse logResp = new LoginResponse(login, serverOk);
         String message = new Gson().toJson(new Message<>(logResp));
         respWriter.print(message);
+        respWriter.close();
     }
 }

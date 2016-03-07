@@ -7,10 +7,7 @@ import ru.ifmo.practice.seabattle.server.Log;
 import ru.ifmo.practice.seabattle.server.Message;
 
 import javax.servlet.ServletException;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
+import javax.servlet.http.*;
 import javax.xml.bind.DatatypeConverter;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -105,6 +102,7 @@ public class RegistrationServlet extends HttpServlet {
                 HttpSession session = req.getSession(true);
                 session.setAttribute("nickname", nickname);
                 session.setAttribute("id", usr.getId());
+                resp.addCookie(new Cookie("nickname", user.getUser_nickname()));
                 Log.getInstance().sendMessage(this.getClass(), "Зарегистрирован пользователь " + usr.getId() + "  " + usr.getUser_nickname() + "  " + usr.getEmail());
             }
         }
@@ -114,6 +112,7 @@ public class RegistrationServlet extends HttpServlet {
                 serverOk, userRegistered);
         String message = new Gson().toJson(new Message<>(regResp));
         respWriter.print(message);
+        respWriter.close();
     }
 
     private boolean validateEmail(String email) {
