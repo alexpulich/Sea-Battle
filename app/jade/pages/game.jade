@@ -4,10 +4,16 @@ block title
 
 block content
     section
+        .chat
+            .chat-messages-area#chat-messages-area
+            form.chat-form#chat-form
+                input#chat-message.chat-message(type="text" name="chat-message", autocomplete="off")
+                input#chat-submit.chat-submit(type="submit" name="chat-submit" value="")
         .section-container.game-section
             .inner
                 .intro
                     .game-field.left
+                        .user-info 
                         table.game-field-table#player
                             -var n = 0
                             while n < 10
@@ -21,6 +27,7 @@ block content
                     
                                                                         
                     .game-field.right
+                        .user-info
                         table.game-field-table#enemy
                             -var n = 0
                             while n < 10

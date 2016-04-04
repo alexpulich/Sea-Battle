@@ -17,15 +17,6 @@ var ajaxFormSender = (function() {
   var crossAjax;
 
   function _setupListeners() {
-    // crossAjax = new easyXDM.Rpc({
-      // remote: "http://46.32.76.190:8000/RegistrationServlet"
-      // ,swf: "js/vendor/easyxdm.swf"
-    // }, {
-      // remote: {
-        // request: {}
-      // }
-    // });
-
     $('#registration-form').on('submit', _submitForm);
     $('#login-form').on('submit', _submitForm);
   }
@@ -34,21 +25,36 @@ var ajaxFormSender = (function() {
     event.preventDefault();
 
     var form = $(this),
-        url = $(form).attr('action'),
-        defObject = _ajaxForm(form,url);
+      url = $(form).attr('action'),
+      defObject = _ajaxForm(form, url);
 
     if (defObject) {
       defObject.done(function(resp) {
-        alert(resp);
-        $($('.form-header')[0]).text(resp);
+        console.log(resp);
+        console.log(form.attr('id'));
+        if (form.attr('id') == 'login-form') {
+          if (resp.data.login) {
+            var noty = notyModule.makeNoty("Авторизация прошла успешно. Сейчас вы будете перенаправлены на страницу с игрой", "success", "2000");
+            setTimeout(function() {
+              window.location = "/game.html";
+            }, 2200);
+          } else {
+            var noty = notyModule.makeNoty("E-mail/Пароль не верны", "error", "2000");
+          }
+        } else if (form.attr('id') == 'registration-form') {
+          if (resp.data.userRegistered) {
+            var noty = notyModule.makeNoty("Регистрация прошла успешно. Сейчас вы будете перенаправлены на страницу авторизации", "success", "2000");
+            setTimeout(function() {
+              window.location = "/login.html";
+            }, 2000);
+          }
+        }
       });
     }
   }
 
-  _ajaxForm = function(form, url) {
+  function _ajaxForm(form, url) {
     var data = form.serialize();
-        // IP = "http://46.32.76.190:8000";
-        // IP = "http://46.33.76.190:8000/RegistrationServlet";
     console.log("DATA");
     console.log(data);
     return $.ajax({
@@ -63,7 +69,7 @@ var ajaxFormSender = (function() {
       console.log(resp);
     });
   }
-  
+
 
   return {
     init: _setupListeners
@@ -74,12 +80,12 @@ var ajaxFormSender = (function() {
 var notyModule = (function() {
   function _makeNoty(message, type, duration) {
     return noty({
-            text: message,
-            theme: "relax",
-            type: type,
-            layout: 'topRight',
-            timeout: duration
-          });
+      text: message,
+      theme: "relax",
+      type: type,
+      layout: 'topRight',
+      timeout: duration
+    });
   }
 
   return {
@@ -97,8 +103,8 @@ var shipsModule = (function() {
    * shipLength - длина корабля
    * startPos {x, y} - начальные координаты
    * block - соответствующий jQuery div объект корабля
-  */
- 
+   */
+
   function _initShips() {
     for (var i = 1; i < 5; i++) {
       var ship = {
@@ -215,9 +221,9 @@ var shipsModule = (function() {
         ship.block.height(shipW);
       }
 
-    // if (mode === "user") {
+      // if (mode === "user") {
       // setTimeout(function() {
-        // gameModule.changeCoords(ship, "AddShip");
+      // gameModule.changeCoords(ship, "AddShip");
       // }, 1000);
     }
   }
@@ -297,7 +303,7 @@ var dragAndDrop = (function() {
       $('#player .game-field-inner').droppable("disable");
       $('.ship').draggable("disable");
       $('.ship').off('click', _rotateShip);
-      
+
     }
   }
 
@@ -327,7 +333,7 @@ var dragAndDrop = (function() {
    * * Сохраняем текущую начальную позицию
    * * Получаем координаты корабля
    * * Отправляем запрос на смену координат с пометку RemoveShip
-   * * 
+   * *
    */
   function _startDragging(event, ui) {
     _tempCoords = {
@@ -342,7 +348,7 @@ var dragAndDrop = (function() {
     var coords = shipsModule.getShipCoords(ship);
     _tempStartCoords.x = ship.startPos.x;
     _tempStartCoords.y = ship.startPos.y
-    if (_tempStartCoords.x!= 10 && _tempStartCoords.y != 10) {
+    if (_tempStartCoords.x != 10 && _tempStartCoords.y != 10) {
       _tempMoveCoords.oldPlace = coords;
       _tempMoveCoords.newPlace = null;
     }
@@ -354,7 +360,7 @@ var dragAndDrop = (function() {
    * * Получаем корабль
    * * Получаем его координаты
    * * Отправляем запрос на смену координат с пометой AddShip
-  */
+   */
   function _stopDragging(event, ui) {
     ship = shipsModule.getShipById($(this).attr('id'));
     ship.block.addClass('ship-animation');
@@ -374,7 +380,7 @@ var dragAndDrop = (function() {
 
   //Сохраняем у корабля его начальную позицию
   function _dropShip(event, ui) {
-      _setShipStartPos($(this));
+    _setShipStartPos($(this));
   }
 
   //Сохраняем кораблю его начальные координаты
@@ -418,7 +424,8 @@ var gameModule = (function() {
     _lastOrientation = null,
     _movingCoords = null,
     _loader = null,
-    _currentShip = null;
+    _currentShip = null,
+    _lastMessage = null;
 
   //установка слушателей событий
   function _setupListeners() {
@@ -432,8 +439,26 @@ var gameModule = (function() {
     $('#enemy .game-field-cell').on('click', _shotClickHandler)
     $('#random').on('click', _placeShipsRandom);
     $('#confirm').on('click', _confirmShipsPlacement);
+    $('#chat-form').on('submit', _sendChatMsg);
   }
 
+  function _sendChatMsg(event) {
+    event.preventDefault();
+    _lastMessage = $('#chat-message').val();
+    $('#chat-message').val("");
+    _send("SendChatMessage");
+  }
+
+  function _handleChatMsgSending() {
+    _send(_lastMessage);
+  }
+
+  function  _printChatMessage(message) {
+    $("#chat-messages-area").append("<div class='chat-msg'><span>" + message.nickName + " : </span>" + message.message + "</div>");
+    // $('#chat-messages-area').scrollTop = $('#chat-messages-area').scrollHeight;
+      var elem = document.getElementById('chat-messages-area');
+      elem.scrollTop = elem.scrollHeight;
+  }
   //подключаемся к серверу и очищаем поле
   function _initGame(mode) {
     _closeSocket();
@@ -532,6 +557,7 @@ var gameModule = (function() {
     dragAndDrop.enableDragAndDrop(false);
     $('#random').addClass('inactive');
     $('#confirm').addClass('inactive');
+    $('.ships-container').height(0);
   }
 
   //Включаем ожидающий загрузчик на поле противника
@@ -565,19 +591,33 @@ var gameModule = (function() {
       theme: "relax",
       timeout: false,
       buttons: [{
-        text: 'Да', onClick: function($noty) {
+        text: 'Да',
+        onClick: function($noty) {
           $noty.close();
           location.reload();
         }
-      },
-      {
-        text: 'Нет', onClick: function($noty) {
+      }, {
+        text: 'Нет',
+        onClick: function($noty) {
           $noty.close();
-          noty({theme: "relax", text: 'Для новой игры обновите страницу', type: 'information'});
+          noty({ theme: "relax", text: 'Для новой игры обновите страницу', type: 'information' });
         }
-      }
-      ]
+      }]
     });
+  }
+
+  function _getGamersInformation() {
+    _send("GetGamersInformation");
+  }
+
+  function _printGamersInformation(gamers) {
+    console.log(gamers);
+    var fields = $.find('.user-info'),
+      gamer1Info = (gamers.gamer1Rating == null) ? gamers.gamer1NickName : gamers.gamer1NickName + " (" + gamers.gamer1Rating + ")";
+    gamer2Info = (gamers.gamer2Rating == null) ? gamers.gamer2NickName : gamers.gamer2NickName + " (" + gamers.gamer2Rating + ")";
+
+    $(fields[0]).text(gamer1Info);
+    $(fields[1]).text(gamer2Info);
   }
 
   //Обработчик notice
@@ -590,6 +630,7 @@ var gameModule = (function() {
         break;
       case "OpponentFound":
         var noty = notyModule.makeNoty("Соперник найден!", "information", 1000);
+        _getGamersInformation();
         _loader.destroy();
         break;
       case "ExpectedCoordinates":
@@ -604,10 +645,13 @@ var gameModule = (function() {
       case "ExpectedShipMovement":
         _sendShipCoords("move");
         break;
+      case "ExpectedChatMessage":
+        _handleChatMsgSending();
+        break;
       case "ShipAdded":
         break;
       case "OpponentLeft":
-        var note = notyModule.makeNoty("Ваш противник отключился!", "warning", 1000); 
+        var note = notyModule.makeNoty("Ваш противник отключился!", "warning", 1000);
         _closeSocket();
         break;
       default:
@@ -639,7 +683,7 @@ var gameModule = (function() {
         // Конец костыля
         break;
       case "IncorrectField":
-        _loader.destroy();
+        if(_loader) _loader.destroy();
         var note = notyModule.makeNoty("Вы не расставили все корабли", "error", 1000);
         break;
       default:
@@ -674,7 +718,7 @@ var gameModule = (function() {
 
       if (data.fieldStatus == "First") {
         var tablePos = $($('.game-field-table')[0]).offset();
-        var fire = $('<div class="fire"/>'); 
+        var fire = $('<div class="fire"/>');
         $('body').append(fire);
         fire.offset({
           top: tablePos.top + 1 + x * 30,
@@ -744,6 +788,12 @@ var gameModule = (function() {
           console.log(msg.data);
           _movingShipsHandler(msg.data);
           break;
+        case "GamersInformation":
+          _printGamersInformation(msg.data);
+          break;
+        case "ChatMessage":
+          _printChatMessage(msg.data);
+          break;
         default:
           console.log("Not in switch");
       }
@@ -755,8 +805,7 @@ var gameModule = (function() {
       if (event.wasClean) {
         messageType = "warning";
         console.log("Connection closed clearly");
-      }
-      else {
+      } else {
         messageType = "error"
         console.log("Connection was broken");
       }
@@ -817,7 +866,7 @@ var gameModule = (function() {
       }
     }
     _send(mode);
-    
+
   }
 
   return {
@@ -838,6 +887,6 @@ $(document).ready(function() {
   }
   if ($.find('.game-section').length > 0)
     gameModule.init();
-  if ($.find('.form').length > 0) 
+  if ($.find('.form').length > 0)
     ajaxFormSender.init();
 });

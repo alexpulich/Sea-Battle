@@ -7,12 +7,12 @@ block content
         .section-container.game-section
             .inner
                 .intro
-                    form.form#login-form(action="http://46.33.76.190:8000/LoginServlet" method="post")
+                    form.form#login-form(action="http://46.32.76.190:8000/LoginServlet" method="post")
                         .form-header Авторизация
                         .form-line
-                            label.form-label(for="login") Логин:
+                            label.form-label(for="email") E-mail:
                             .input-wrapper
-                                input.form-input(type="text" name="login" id="login" placeholder="Например, winner3000" required)
+                                input.form-input(type="email" name="email" id="email" placeholder="Например, winner3000@mail.ru" required)
                         .clearfix
                         .form-line
                             label.form-label(for="password") Пароль:
