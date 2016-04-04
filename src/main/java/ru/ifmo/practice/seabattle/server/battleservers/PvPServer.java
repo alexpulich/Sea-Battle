@@ -6,9 +6,12 @@ import ru.ifmo.practice.seabattle.battle.SecondField;
 import ru.ifmo.practice.seabattle.exceptions.BattleAlreadyStartException;
 import ru.ifmo.practice.seabattle.exceptions.ChatNotSupportedException;
 import ru.ifmo.practice.seabattle.exceptions.RoomIsFullException;
+import ru.ifmo.practice.seabattle.server.Error;
+import ru.ifmo.practice.seabattle.server.Log;
 import ru.ifmo.practice.seabattle.server.Message;
 import ru.ifmo.practice.seabattle.server.Notice;
 
+import javax.servlet.http.HttpSession;
 import javax.websocket.OnClose;
 import javax.websocket.OnMessage;
 import javax.websocket.OnOpen;
@@ -28,7 +31,19 @@ public class PvPServer extends BattleServer {
 
     @OnOpen
     public void onOpen(Session session) throws IOException {
-        super.onOpen(session, ((PrincipalWithSession) session.getUserPrincipal()).getSession());
+        HttpSession httpSession = ((PrincipalWithSession) session.getUserPrincipal()).getSession();
+
+        for (String id : queue) {
+            String nickName = (String) httpSession.getAttribute("nickname");
+            if (nickName != null && players.get(id).getNickName().equals(nickName)) {
+                Log.getInstance().sendMessage(this.getClass(), session.getId(),
+                        "Соединение установлено, поиск противника не начат");
+                sendMessage(new Message<>(Error.PvPSessionAlreadyOpen), session);
+                return;
+            }
+        }
+
+        super.onOpen(session, httpSession);
 
         queue.add(session.getId());
 
@@ -241,7 +256,7 @@ public class PvPServer extends BattleServer {
 
         sendMessage(new Message<>(new ChatMessage(player.getNickName(), message)), player.getSession());
         if (opponent != null) {
-            sendMessage(new Message<>(new ChatMessage(opponent.getNickName(), message)), opponent.getSession());
+            sendMessage(new Message<>(new ChatMessage(player.getNickName(), message)), opponent.getSession());
         } else throw new IllegalArgumentException();
     }
 

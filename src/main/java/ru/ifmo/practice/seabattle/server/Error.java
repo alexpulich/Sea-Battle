@@ -12,5 +12,6 @@ public enum Error {
     ShotRepeated,
     NotYourTurn,
     BattleNotStart,
-    ChatNotSupported
+    ChatNotSupported,
+    PvPSessionAlreadyOpen
 }

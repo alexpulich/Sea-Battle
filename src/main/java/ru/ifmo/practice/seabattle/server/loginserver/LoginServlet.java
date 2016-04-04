@@ -61,6 +61,9 @@ public class LoginServlet extends HttpServlet {
             session.setAttribute("nickname", user.getUser_nickname());
             session.setAttribute("id", user.getId());
             Log.getInstance().sendMessage(this.getClass(), "Авторизовался пользователь " + user.getId() + "  " + user.getUser_nickname() + "  " + user.getEmail());
+            String nick = (String) session.getAttribute("nickname");
+            Integer id = (Integer) session.getAttribute("id");
+            System.out.println("Данные из сессии: " + nick + " " + id);
         }
         LoginResponse logResp = new LoginResponse(login, serverOk);
         String message = new Gson().toJson(new Message<>(logResp));

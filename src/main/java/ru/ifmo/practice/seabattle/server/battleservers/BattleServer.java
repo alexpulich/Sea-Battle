@@ -30,6 +30,7 @@ abstract class BattleServer extends HttpServlet implements FieldChangesListener,
 
         Player player;
         Object objId = httpSession.getAttribute("id");
+
         if (objId != null) {
             try {
                 Integer id = new Integer(objId.toString());
